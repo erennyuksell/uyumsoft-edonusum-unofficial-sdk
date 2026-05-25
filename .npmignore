@@ -1,0 +1,7 @@
+src
+test
+.github
+eslint.config.js
+vitest.config.ts
+tsconfig.json
+*.log
