@@ -27,7 +27,7 @@ const ledgers = await client.edefter.ledgers.list({ Year: 2025, Month: 1 });
 - 🔌 **10 servis, tek client** — e-Fatura, e-İrsaliye, e-SMM, e-MM, e-Defter, e-Bilet, e-Adisyon, e-Döviz, e-Banka Makbuzu, e-Gider Pusulası
 - 🔄 **Lazy SOAP init** — her servis ilk çağrıda bağlanır, kullanılmayan servis bağlantı açmaz
 - 🛡️ **Retry + Exponential Backoff** — ağ hatalarında otomatik yeniden deneme
-- 📦 **Dar dependency yüzeyi** — SOAP için `soap`, UBL-TR envelope için `@erennyuksell/ubl-tr`
+- 📦 **Uyumsoft uyumlu SOAP serialization** — SOAP için `strong-soap`, UBL-TR envelope için `@erennyuksell/ubl-tr`
 - 🧩 **Tam TypeScript** — tüm request/response tipleri dahil
 - 📖 **Domain-grouped API** — `inbox`, `outbox`, `send`, `manage`, `users`, `system`
 

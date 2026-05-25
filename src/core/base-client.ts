@@ -1,5 +1,5 @@
 // Uyumsoft SDK — Enterprise Base SOAP Client
-import * as soap from 'soap';
+import * as strongSoap from 'strong-soap';
 import type {
   UyumsoftConfig,
   ServiceEndpoints,
@@ -79,12 +79,14 @@ export abstract class BaseClient {
     this.logger?.debug?.('Creating SOAP client', { wsdlUrl: this.wsdlUrl });
     try {
       this.soapClient = await new Promise<any>((resolve, reject) => {
-        soap.createClient(this.wsdlUrl, {}, (err: any, client: any) => {
+        strongSoap.soap.createClient(this.wsdlUrl, {}, (err: any, client: any) => {
           if (err) reject(err);
           else resolve(client);
         });
       });
-      this.soapClient.setSecurity(new soap.WSSecurity(this.config.username, this.config.password));
+      this.soapClient.setSecurity(
+        new strongSoap.soap.WSSecurity(this.config.username, this.config.password),
+      );
       this.logger?.info?.('SOAP client connected', { wsdlUrl: this.wsdlUrl });
       return this.soapClient;
     } catch (err) {
