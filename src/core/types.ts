@@ -72,7 +72,7 @@ export interface ServiceEndpoints {
 export const UYUMSOFT_ENDPOINTS = {
   efatura: {
     production: 'https://edonusumapi.uyum.com.tr/services/Integration?wsdl',
-    test: 'https://efatura-test.uyumsoft.com.tr/Services/Integration?wsdl',
+    test: 'https://efaturaws-test.uyum.com.tr/services/Integration?wsdl',
   },
   eirsaliye: {
     production: 'https://edonusumapi.uyum.com.tr/services/DespatchIntegration?wsdl',

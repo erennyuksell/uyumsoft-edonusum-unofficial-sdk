@@ -430,10 +430,10 @@ const invoices = await efatura.inbox.list();
 
 ## Endpoint'ler
 
-| Ortam          | Base URL                                 |
-| -------------- | ---------------------------------------- |
-| **Production** | `edonusumapi.uyum.com.tr/services/`      |
-| **Test**       | `efatura-test.uyumsoft.com.tr/Services/` |
+| Ortam          | Base URL                               |
+| -------------- | -------------------------------------- |
+| **Production** | `edonusumapi.uyum.com.tr/services/`    |
+| **Test**       | `efaturaws-test.uyum.com.tr/services/` |
 
 > Not: Production ortamı IP whitelist gerektirebilir. Uyumsoft destek ile iletişime geçin.
 

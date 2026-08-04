@@ -9,6 +9,10 @@
 
 ### Fixed
 
+- Correct the e-Fatura test endpoint. It pointed at `efatura-test.uyumsoft.com.tr`, a host that
+  does not answer on 443, so `environment: 'test'` could not reach e-Fatura at all. It is now
+  `efaturaws-test.uyum.com.tr/services/Integration`, matching the other nine services and
+  serving the same 64 operations as production.
 - `buildUyumsoftInvoiceInfo` no longer requires `invoiceNo`. Uyumsoft assigns the number itself
   when `cbc:ID` is blank, or allocates from a specific series when a 3-character prefix is sent,
   so the UBL-TR "invoice number is required" rule is now opted out of for this builder. A blank
