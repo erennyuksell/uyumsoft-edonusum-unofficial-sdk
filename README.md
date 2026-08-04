@@ -46,7 +46,7 @@ const client = new Uyumsoft({
   password: 'WS_PASS',
 
   // Opsiyonel
-  environment: 'production', // 'test' | 'production' (varsayılan: 'test')
+  environment: 'test', // 'test' | 'production' (varsayılan: 'test')
   timeout: 30_000, // ms (varsayılan: 30000)
 
   // Retry politikası
@@ -427,6 +427,33 @@ const invoices = await efatura.inbox.list();
 
 This package includes typed SOAP clients, response helpers, retry/timeout handling, and a Uyumsoft invoice envelope builder. It does not include credentials, account provisioning, IP whitelist management, GIB portal automation, XML signing, persistence, HTTP controllers, or official/vendor PDF documentation.
 
+## Testing
+
+The default test suite is offline and uses mock strong-soap style fixtures:
+
+```bash
+npm run typecheck
+npm run lint
+npm test
+npm run build
+```
+
+The full local CI command is:
+
+```bash
+npm run ci
+```
+
+Package smoke coverage runs `npm pack`, installs the generated tarball into a temporary consumer project, and verifies both ESM `import` and CJS `require`.
+
+For a live readonly Uyumsoft smoke test, provide credentials explicitly. This command builds the package first, refuses production, then calls `TestConnection` and safe one-item list probes without printing credentials or invoice payloads:
+
+```bash
+UYUMSOFT_USERNAME=... UYUMSOFT_PASSWORD=... UYUMSOFT_ENV=test npm run test:live:readonly
+```
+
+Mutating live tests are guarded separately and require `UYUMSOFT_RUN_MUTATING_TESTS=true`. Built-in e-Fatura/e-Arşiv and e-SMM flows create `SDKTEST-*` test documents, save them as draft, check outbox list/status, and attempt draft cleanup. e-MM uses a safe clone/status/cancelDraft smoke against an existing test receipt. e-İrsaliye tries the vendor clone API, while e-Adisyon, e-Döviz, e-Banka Makbuzu, and e-Gider Pusulası try generated SDKTEST draft payloads before falling back to safe probes when the public test account blocks the operation. e-Bilet has no draft API, so it uses existing list/get unless an explicit send fixture is provided. Module permissions, branch/VKN mismatches, or Uyumsoft test endpoint limitations are reported as skipped unless `UYUMSOFT_REQUIRE_ALL_MUTATING_FIXTURES=true` is set. See [docs/testing.md](docs/testing.md).
+
 ## Disclaimer
 
 This package is unofficial and independent. Uyumsoft service behavior can vary by environment, account permission, and enabled e-Dönüşüm modules. Test against your own Uyumsoft account before production use.
@@ -439,5 +466,5 @@ MIT
 
 1. Fork & clone
 2. `npm install`
-3. `npm run typecheck && npm run lint && npm test && npm run build`
+3. `npm run ci`
 4. PR açın

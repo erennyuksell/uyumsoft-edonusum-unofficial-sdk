@@ -1,0 +1,29 @@
+name: Live Readonly Smoke
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 4 * * 1'
+
+jobs:
+  live-readonly:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run readonly live smoke against Uyumsoft test
+        run: npm run test:live:readonly
+        env:
+          UYUMSOFT_USERNAME: ${{ secrets.UYUMSOFT_USERNAME }}
+          UYUMSOFT_PASSWORD: ${{ secrets.UYUMSOFT_PASSWORD }}
+          UYUMSOFT_ENV: test

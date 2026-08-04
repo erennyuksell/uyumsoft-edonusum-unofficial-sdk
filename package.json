@@ -31,6 +31,7 @@
   "sideEffects": false,
   "files": [
     "dist",
+    "docs",
     "README.md",
     "LICENSE",
     "CHANGELOG.md",
@@ -49,12 +50,19 @@
   "scripts": {
     "clean": "rimraf dist",
     "build": "tsup src/index.ts --format esm,cjs --dts --sourcemap --clean",
+    "ci": "npm run typecheck && npm run lint && npm run format:check && npm run test:unit && npm run test:package",
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run",
+    "test": "npm run test:unit",
+    "test:unit": "vitest run",
+    "test:fixtures": "vitest run test/soap-fixtures.test.ts test/endpoint-matrix.test.ts test/security-logging.test.ts",
     "test:watch": "vitest",
+    "test:package": "npm run build && node scripts/test-package.mjs",
+    "test:live": "npm run test:live:readonly",
+    "test:live:readonly": "npm run build && node scripts/live-readonly.mjs",
+    "test:live:mutating": "npm run build && node scripts/live-mutating.mjs",
     "prepack": "npm run build"
   },
   "dependencies": {

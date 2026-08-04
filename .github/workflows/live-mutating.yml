@@ -1,0 +1,29 @@
+name: Live Mutating Smoke
+
+on:
+  workflow_dispatch:
+
+jobs:
+  live-mutating:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run guarded mutating smoke against Uyumsoft test
+        run: npm run test:live:mutating
+        env:
+          UYUMSOFT_USERNAME: ${{ secrets.UYUMSOFT_USERNAME }}
+          UYUMSOFT_PASSWORD: ${{ secrets.UYUMSOFT_PASSWORD }}
+          UYUMSOFT_ENV: test
+          UYUMSOFT_RUN_MUTATING_TESTS: ${{ secrets.UYUMSOFT_RUN_MUTATING_TESTS }}
+          UYUMSOFT_MUTATING_INVOICE_XML: ${{ secrets.UYUMSOFT_MUTATING_INVOICE_XML }}
