@@ -6,6 +6,8 @@
 
 - `environment` now defaults to `'test'` instead of `'production'`. Callers that never set it
   were silently talking to the live endpoint; set `environment: 'production'` explicitly.
+- Requires Node >= 20, up from >= 18. Node 18 has been end-of-life since April 2025 and the test
+  toolchain no longer runs on it, so continuing to claim support would be untested.
 
 ### Fixed
 
