@@ -348,6 +348,20 @@ SHI       2025    000000029    → SHI2025000000029
 
 Boş ID gönderilirse Uyumsoft otomatik atar. 3 haneli prefix gönderilirse o seriden sıradaki numara atanır.
 
+`buildUyumsoftInvoiceInfo` bunu destekler: `invoiceNo` boş bırakılabilir ya da 3 haneli seri
+prefix'i verilebilir. Atanan numara gönderim yanıtındaki `Number` alanında döner.
+
+```typescript
+// Uyumsoft kayıtlı seriden sıradaki numarayı atar
+const info = buildUyumsoftInvoiceInfo({ ...ublInput, invoiceNo: '' });
+
+// SHI serisinden sıradaki numara
+const fromSeries = buildUyumsoftInvoiceInfo({ ...ublInput, invoiceNo: 'SHI' });
+
+const [identity] = await client.efatura.send.invoice([info]);
+identity.Number; // → SHI2026000000017
+```
+
 ## Hata Yönetimi
 
 ```typescript

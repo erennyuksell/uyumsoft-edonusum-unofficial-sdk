@@ -48,12 +48,18 @@ export interface UyumsoftInvoiceOptions {
  * 3. Wraps result in Uyumsoft-specific InvoiceInfo envelope
  *
  * The returned object is passed to `send.invoice()` or `send.saveAsDraft()`.
+ *
+ * `input.invoiceNo` may be left blank: Uyumsoft then allocates the next number from the
+ * registered series. A 3-character prefix selects a specific series. See "Fatura Seri Numarası
+ * Formatı" in the README.
  */
 export function buildUyumsoftInvoiceInfo(
   input: UblInvoiceInput,
   options: UyumsoftInvoiceOptions = {},
 ): InvoiceInfo {
-  const ublInvoice = buildUblInvoice(input);
+  // Uyumsoft assigns cbc:ID itself when it is blank, so the UBL-TR "invoice number is
+  // required" rule must not apply here.
+  const ublInvoice = buildUblInvoice(input, { providerAssignedInvoiceNo: true });
   const isEArchive = input.profileId === 'EARSIVFATURA';
   const eArchive = input.eArchiveInfo;
 

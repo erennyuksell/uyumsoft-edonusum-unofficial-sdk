@@ -90,4 +90,22 @@ describe('public API', () => {
     expect(invoiceInfo.TargetCustomer.Alias).toBe('urn:mail:defaultpk@uyumsoft.com.tr');
     expect((invoiceInfo.Invoice as UnknownRecord).InvoiceLine).toHaveLength(1);
   });
+
+  it('lets Uyumsoft assign the invoice number when invoiceNo is blank', () => {
+    const invoiceInfo = buildUyumsoftInvoiceInfo({ ...invoiceInput, invoiceNo: '' });
+
+    expect((invoiceInfo.Invoice as UnknownRecord).ID).toBe('');
+  });
+
+  it('passes a 3-character series prefix through as the invoice number', () => {
+    const invoiceInfo = buildUyumsoftInvoiceInfo({ ...invoiceInput, invoiceNo: 'SHI' });
+
+    expect((invoiceInfo.Invoice as UnknownRecord).ID).toBe('SHI');
+  });
+
+  it('still rejects structurally invalid invoice input', () => {
+    expect(() =>
+      buildUyumsoftInvoiceInfo({ ...invoiceInput, invoiceNo: '', taxAmount: 999 }),
+    ).toThrow(/taxAmount/);
+  });
 });

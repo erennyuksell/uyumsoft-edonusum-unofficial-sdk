@@ -1,6 +1,6 @@
 {
   "name": "@erennyuksell/uyumsoft-edonusum-unofficial-sdk",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Unofficial TypeScript SDK for Uyumsoft e-Donusum SOAP services.",
   "type": "module",
   "license": "MIT",
@@ -66,7 +66,7 @@
     "prepack": "npm run build"
   },
   "dependencies": {
-    "@erennyuksell/ubl-tr": "^0.1.0",
+    "@erennyuksell/ubl-tr": "^0.2.0",
     "strong-soap": "^5.0.10"
   },
   "devDependencies": {
