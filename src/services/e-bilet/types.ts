@@ -1,9 +1,11 @@
 // Uyumsoft SDK — e-Bilet (Ticket) Types
-import type { LogRecordItem, QuerySortMode } from '../../core/types';
+import type { LogRecordItem, QuerySortMode, UnknownRecord } from '../../core/types';
 
-export interface TicketListItem {
-  [key: string]: any;
-}
+export type TicketListItem = UnknownRecord;
+export type TicketPayload = UnknownRecord;
+export type TicketSendResult = UnknownRecord;
+export type PassengerListPayload = UnknownRecord;
+export type PassengerListSendResult = UnknownRecord;
 export interface TicketStatusInfo {
   Ettn: string;
   Status: string;

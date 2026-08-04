@@ -1,7 +1,7 @@
 // Uyumsoft SDK — e-MM (Producer Receipt / Müstahsil Makbuzu) Client (Enterprise)
 import { BaseClient, type ServiceContext } from '../../core/base-client';
 import { UYUMSOFT_ENDPOINTS, type UyumsoftConfig, type PagedResult } from '../../core/types';
-import { toArray, SharedSystemMethods, buildOutboxContext } from '../../core/helpers';
+import { SharedSystemMethods, buildOutboxContext } from '../../core/helpers';
 import type {
   ProducerReceiptListQuery,
   ProducerReceiptListItem,
@@ -10,6 +10,7 @@ import type {
   ProducerReceiptData,
   ProducerReceiptDocumentIdentity,
   ClonedProducerReceiptInfo,
+  ProducerReceiptPayload,
 } from './types';
 
 /**
@@ -63,37 +64,40 @@ class MmOutboxMethods {
   }
 
   async get(producerReceiptId: string): Promise<ProducerReceiptData> {
-    const raw = await this.ctx.call('GetProducerReceipt', { producerReceiptId });
+    const raw = await this.ctx.call('GetProducerReceipt', { receiptId: producerReceiptId });
     return this.ctx.unwrap<ProducerReceiptData>(raw, 'GetProducerReceiptResult');
   }
 
   async getData(producerReceiptId: string): Promise<ProducerReceiptData> {
-    const raw = await this.ctx.call('GetProducerReceiptData', { producerReceiptId });
+    const raw = await this.ctx.call('GetProducerReceiptData', { receiptId: producerReceiptId });
     return this.ctx.unwrap<ProducerReceiptData>(raw, 'GetProducerReceiptDataResult');
   }
 
   async getHtmlView(producerReceiptId: string): Promise<string> {
-    const raw = await this.ctx.call('GetHtmlView', { producerReceiptId });
+    const raw = await this.ctx.call('GetHtmlView', { receiptId: producerReceiptId });
     return this.ctx.unwrapString(raw, 'GetHtmlViewResult');
   }
 
   async getPdf(producerReceiptId: string): Promise<ProducerReceiptData> {
-    const raw = await this.ctx.call('GetPdfView', { producerReceiptId });
+    const raw = await this.ctx.call('GetPdfView', { receiptId: producerReceiptId });
     return this.ctx.unwrap<ProducerReceiptData>(raw, 'GetPdfViewResult');
   }
 
   async getStatus(ettns: string[]): Promise<ProducerReceiptStatusInfo[]> {
     const raw = await this.ctx.call('QueryProducerReceiptStatus', {
-      producerReceiptEttns: { string: ettns },
+      receiptIds: { string: ettns },
     });
-    return toArray(this.ctx.unwrap<any>(raw, 'QueryProducerReceiptStatusResult'));
+    return this.ctx.unwrapArray<ProducerReceiptStatusInfo>(raw, 'QueryProducerReceiptStatusResult');
   }
 
   async getStatusWithLogs(ettns: string[]): Promise<ProducerReceiptStatusWithLogInfo[]> {
     const raw = await this.ctx.call('QueryProducerReceiptStatusWithLogs', {
-      producerReceiptEttns: { string: ettns },
+      receiptIds: { string: ettns },
     });
-    return toArray(this.ctx.unwrap<any>(raw, 'QueryProducerReceiptStatusWithLogsResult'));
+    return this.ctx.unwrapArray<ProducerReceiptStatusWithLogInfo>(
+      raw,
+      'QueryProducerReceiptStatusWithLogsResult',
+    );
   }
 }
 
@@ -102,23 +106,29 @@ class MmOutboxMethods {
 class MmSendMethods {
   constructor(private readonly ctx: ServiceContext) {}
 
-  async producerReceipt(receipts: any[]): Promise<ProducerReceiptDocumentIdentity[]> {
-    const raw = await this.ctx.call('SendProducerReceipt', { receipts });
-    return toArray(this.ctx.unwrap<any>(raw, 'SendProducerReceiptResult'));
+  async producerReceipt(
+    receipts: ProducerReceiptPayload[],
+  ): Promise<ProducerReceiptDocumentIdentity[]> {
+    const raw = await this.ctx.call('SendProducerReceipt', {
+      receipts: { ProducerReceiptInfo: receipts },
+    });
+    return this.ctx.unwrapArray<ProducerReceiptDocumentIdentity>(raw, 'SendProducerReceiptResult');
   }
 
-  async saveAsDraft(receipts: any[]): Promise<ProducerReceiptDocumentIdentity[]> {
-    const raw = await this.ctx.call('SaveAsDraft', { receipts });
-    return toArray(this.ctx.unwrap<any>(raw, 'SaveAsDraftResult'));
+  async saveAsDraft(
+    receipts: ProducerReceiptPayload[],
+  ): Promise<ProducerReceiptDocumentIdentity[]> {
+    const raw = await this.ctx.call('SaveAsDraft', { receipts: { ProducerReceiptInfo: receipts } });
+    return this.ctx.unwrapArray<ProducerReceiptDocumentIdentity>(raw, 'SaveAsDraftResult');
   }
 
   async sendDraft(ettns: string[]): Promise<boolean> {
-    const raw = await this.ctx.call('SendDraft', { receiptEttns: { string: ettns } });
+    const raw = await this.ctx.call('SendDraft', { receiptIdentifiers: { string: ettns } });
     return this.ctx.unwrapFlag(raw, 'SendDraftResult');
   }
 
   async cancelDraft(ettns: string[]): Promise<boolean> {
-    const raw = await this.ctx.call('CancelDraft', { receiptEttns: { string: ettns } });
+    const raw = await this.ctx.call('CancelDraft', { receiptIdentifiers: { string: ettns } });
     return this.ctx.unwrapFlag(raw, 'CancelDraftResult');
   }
 }
@@ -130,26 +140,26 @@ class MmManageMethods {
 
   async cancel(ettn: string, cancelDate: string): Promise<boolean> {
     const raw = await this.ctx.call('CancelProducerReceipt', {
-      cancellationContext: { $attributes: { ProducerReceiptEttn: ettn, CancelDate: cancelDate } },
+      cancellationContext: { $attributes: { DocumentId: ettn, CancelDate: cancelDate } },
     });
     return this.ctx.unwrapFlag(raw, 'CancelProducerReceiptResult');
   }
 
   async changeArchiveStatus(ettns: string[], isArchive: boolean): Promise<boolean> {
     const raw = await this.ctx.call('ChangeIsArchiveStatus', {
-      receiptEtts: { string: ettns },
+      receiptIds: { string: ettns },
       isArchive,
     });
     return this.ctx.unwrapFlag(raw, 'ChangeIsArchiveStatusResult');
   }
 
   async moveToDraft(ettns: string[]): Promise<boolean> {
-    const raw = await this.ctx.call('MoveToDraftStatus', { receiptEttns: { string: ettns } });
+    const raw = await this.ctx.call('MoveToDraftStatus', { receiptIds: { string: ettns } });
     return this.ctx.unwrapFlag(raw, 'MoveToDraftStatusResult');
   }
 
   async clone(ettn: string, createNewId = true): Promise<ClonedProducerReceiptInfo> {
-    const raw = await this.ctx.call('CloneProducerReceipt', { receiptEttn: ettn, createNewId });
+    const raw = await this.ctx.call('CloneProducerReceipt', { receiptId: ettn, createNewId });
     return this.ctx.unwrap<ClonedProducerReceiptInfo>(raw, 'CloneProducerReceiptResult');
   }
 }

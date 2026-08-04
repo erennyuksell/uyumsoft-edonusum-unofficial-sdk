@@ -1,9 +1,8 @@
 // Uyumsoft SDK — e-Adisyon (GuestCheck) Types
-import type { LogRecordItem, QuerySortMode } from '../../core/types';
+import type { LogRecordItem, QuerySortMode, UnknownRecord } from '../../core/types';
 
-export interface GuestCheckListItem {
-  [key: string]: any;
-}
+export type GuestCheckListItem = UnknownRecord;
+export type GuestCheckPayload = UnknownRecord | UnknownRecord[];
 export interface GuestCheckStatusInfo {
   Ettn: string;
   Status: string;

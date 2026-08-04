@@ -1,12 +1,7 @@
 // Uyumsoft SDK — e-SMM (Voucher) Client (Enterprise)
 import { BaseClient, type ServiceContext } from '../../core/base-client';
 import { UYUMSOFT_ENDPOINTS, type UyumsoftConfig, type PagedResult } from '../../core/types';
-import {
-  toArray,
-  SharedSystemMethods,
-  buildOutboxContext,
-  buildPaginationAttrs,
-} from '../../core/helpers';
+import { SharedSystemMethods, buildOutboxContext, buildPaginationAttrs } from '../../core/helpers';
 import type {
   VoucherListQuery,
   VoucherListItem,
@@ -16,6 +11,7 @@ import type {
   VoucherData,
   VoucherDocumentIdentity,
   ClonedVoucherInfo,
+  VoucherPayload,
 } from './types';
 
 /**
@@ -96,7 +92,7 @@ class SmmOutboxMethods {
     const raw = await this.ctx.call('QueryVoucherStatus', {
       voucherEttns: { string: voucherEttns },
     });
-    return toArray(this.ctx.unwrap<any>(raw, 'QueryVoucherStatusResult'));
+    return this.ctx.unwrapArray<VoucherStatusInfo>(raw, 'QueryVoucherStatusResult');
   }
 
   /** Get voucher status with detailed processing logs. */
@@ -104,7 +100,7 @@ class SmmOutboxMethods {
     const raw = await this.ctx.call('QueryVoucherStatusWithLogs', {
       receiptIds: { string: receiptIds },
     });
-    return toArray(this.ctx.unwrap<any>(raw, 'QueryVoucherStatusWithLogsResult'));
+    return this.ctx.unwrapArray<VoucherStatusWithLogInfo>(raw, 'QueryVoucherStatusWithLogsResult');
   }
 
   /** Get voucher source XML data. */
@@ -165,15 +161,15 @@ class SmmSendMethods {
   constructor(private readonly ctx: ServiceContext) {}
 
   /** Send one or more vouchers. Returns document identities with assigned numbers. */
-  async voucher(vouchers: any[]): Promise<VoucherDocumentIdentity[]> {
-    const raw = await this.ctx.call('SendVoucher', { vouchers });
-    return toArray(this.ctx.unwrap<any>(raw, 'SendVoucherResult'));
+  async voucher(vouchers: VoucherPayload[]): Promise<VoucherDocumentIdentity[]> {
+    const raw = await this.ctx.call('SendVoucher', { vouchers: { VoucherSource: vouchers } });
+    return this.ctx.unwrapArray<VoucherDocumentIdentity>(raw, 'SendVoucherResult');
   }
 
   /** Save voucher(s) as draft without sending. */
-  async saveAsDraft(vouchers: any[]): Promise<VoucherDocumentIdentity[]> {
-    const raw = await this.ctx.call('SaveAsDraft', { vouchers });
-    return toArray(this.ctx.unwrap<any>(raw, 'SaveAsDraftResult'));
+  async saveAsDraft(vouchers: VoucherPayload[]): Promise<VoucherDocumentIdentity[]> {
+    const raw = await this.ctx.call('SaveAsDraft', { vouchers: { VoucherSource: vouchers } });
+    return this.ctx.unwrapArray<VoucherDocumentIdentity>(raw, 'SaveAsDraftResult');
   }
 
   /** Send existing draft vouchers (changes status from Draft → Queued). */

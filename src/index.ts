@@ -11,6 +11,9 @@ export type {
   PagedResult,
   ServiceEndpoints,
   LogRecordItem,
+  SoapRequestParams,
+  UnknownRecord,
+  UyumsoftDocumentPayload,
 } from './core/types';
 export {
   UYUMSOFT_ENDPOINTS,

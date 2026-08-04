@@ -1,16 +1,26 @@
 // Uyumsoft SDK — e-Defter (Ledger) Client
 import { BaseClient, type ServiceContext } from '../../core/base-client';
 import { UYUMSOFT_ENDPOINTS, type UyumsoftConfig } from '../../core/types';
-import { toArray, SharedSystemMethods } from '../../core/helpers';
+import { SharedSystemMethods } from '../../core/helpers';
 import type {
-  LedgerSource,
+  AccountantInfo,
+  CompanyInfo,
+  LedgerCertificatePayload,
+  LedgerCertificateResult,
+  LedgerData,
+  LedgerImportPayload,
+  LedgerImportResult,
   LedgerInfo,
   LedgerLog,
-  LedgerSchematronResult,
   LedgerReport,
-  CompanyInfo,
-  AccountantInfo,
+  LedgerReportData,
+  LedgerSchematronResult,
+  LedgerSigningSessionData,
+  LedgerSource,
   LedgerSourceInfo,
+  LedgerSourceUpload,
+  LedgerSourceUploadResult,
+  LedgerSuccessfulPeriods,
 } from './types';
 
 /**
@@ -40,14 +50,14 @@ export class EDefterClient extends BaseClient {
 class LedgerSourceMethods {
   constructor(private readonly ctx: ServiceContext) {}
 
-  async upload(source: any): Promise<any> {
+  async upload(source: LedgerSourceUpload): Promise<LedgerSourceUploadResult> {
     const raw = await this.ctx.call('UploadSource', { source });
-    return this.ctx.unwrap(raw, 'UploadSourceResult');
+    return this.ctx.unwrap<LedgerSourceUploadResult>(raw, 'UploadSourceResult');
   }
 
   async list(): Promise<LedgerSource[]> {
     const raw = await this.ctx.call('GetLedgerSources');
-    return toArray(this.ctx.unwrap<any>(raw, 'GetLedgerSourcesResult'));
+    return this.ctx.unwrapArray<LedgerSource>(raw, 'GetLedgerSourcesResult');
   }
 
   async getInfo(sourceId: string): Promise<LedgerSourceInfo> {
@@ -62,7 +72,7 @@ class LedgerSourceMethods {
 
   async getLogs(sourceId: string): Promise<LedgerLog[]> {
     const raw = await this.ctx.call('GetLedgerSourceLogs', { sourceId });
-    return toArray(this.ctx.unwrap<any>(raw, 'GetLedgerSourceLogsResult'));
+    return this.ctx.unwrapArray<LedgerLog>(raw, 'GetLedgerSourceLogsResult');
   }
 }
 
@@ -73,17 +83,17 @@ class LedgerMethods {
 
   async list(): Promise<LedgerInfo[]> {
     const raw = await this.ctx.call('GetLedgers');
-    return toArray(this.ctx.unwrap<any>(raw, 'GetLedgersResult'));
+    return this.ctx.unwrapArray<LedgerInfo>(raw, 'GetLedgersResult');
   }
 
-  async getData(ledgerId: string): Promise<any> {
+  async getData(ledgerId: string): Promise<LedgerData> {
     const raw = await this.ctx.call('GetLedgerData', { ledgerId });
-    return this.ctx.unwrap(raw, 'GetLedgerDataResult');
+    return this.ctx.unwrap<LedgerData>(raw, 'GetLedgerDataResult');
   }
 
-  async getDataByFileType(ledgerId: string, fileType: string): Promise<any> {
+  async getDataByFileType(ledgerId: string, fileType: string): Promise<LedgerData> {
     const raw = await this.ctx.call('GetLedgerDataByFileType', { ledgerId, fileType });
-    return this.ctx.unwrap(raw, 'GetLedgerDataByFileTypeResult');
+    return this.ctx.unwrap<LedgerData>(raw, 'GetLedgerDataByFileTypeResult');
   }
 
   async getCompressedData(ledgerId: string): Promise<string> {
@@ -108,12 +118,12 @@ class LedgerMethods {
 
   async getLogs(ledgerId: string): Promise<LedgerLog[]> {
     const raw = await this.ctx.call('GetLedgerLogs', { ledgerId });
-    return toArray(this.ctx.unwrap<any>(raw, 'GetLedgerLogsResult'));
+    return this.ctx.unwrapArray<LedgerLog>(raw, 'GetLedgerLogsResult');
   }
 
   async getSchematronResults(ledgerId: string): Promise<LedgerSchematronResult[]> {
     const raw = await this.ctx.call('GetLedgerSchematronResults', { ledgerId });
-    return toArray(this.ctx.unwrap<any>(raw, 'GetLedgerSchematronResultsResult'));
+    return this.ctx.unwrapArray<LedgerSchematronResult>(raw, 'GetLedgerSchematronResultsResult');
   }
 
   async uploadSigned(ledgerId: string, signedData: string): Promise<boolean> {
@@ -136,9 +146,9 @@ class LedgerMethods {
     return this.ctx.unwrapString(raw, 'TransformLedgerToCompressedHtmlResult');
   }
 
-  async getSigningSessionData(ledgerId: string): Promise<any> {
+  async getSigningSessionData(ledgerId: string): Promise<LedgerSigningSessionData> {
     const raw = await this.ctx.call('GetLedgerSigningSessionData', { ledgerId });
-    return this.ctx.unwrap(raw, 'GetLedgerSigningSessionDataResult');
+    return this.ctx.unwrap<LedgerSigningSessionData>(raw, 'GetLedgerSigningSessionDataResult');
   }
 
   async canPrepare(period: string): Promise<boolean> {
@@ -151,14 +161,14 @@ class LedgerMethods {
     return this.ctx.unwrapFlag(raw, 'StoreCompletedLedgerResult');
   }
 
-  async importLedger(data: any): Promise<any> {
+  async importLedger(data: LedgerImportPayload): Promise<LedgerImportResult> {
     const raw = await this.ctx.call('ImportLedger', { data });
-    return this.ctx.unwrap(raw, 'ImportLedgerResult');
+    return this.ctx.unwrap<LedgerImportResult>(raw, 'ImportLedgerResult');
   }
 
-  async latestSuccessfulPeriods(): Promise<any> {
+  async latestSuccessfulPeriods(): Promise<LedgerSuccessfulPeriods> {
     const raw = await this.ctx.call('LatestSuccessfulPeriods');
-    return this.ctx.unwrap(raw, 'LatestSuccessfulPeriodsResult');
+    return this.ctx.unwrap<LedgerSuccessfulPeriods>(raw, 'LatestSuccessfulPeriodsResult');
   }
 
   async syncWithBookkeeper(): Promise<boolean> {
@@ -166,12 +176,12 @@ class LedgerMethods {
     return this.ctx.unwrapFlag(raw, 'SyncronizeWithBookkeperResult');
   }
 
-  async createCertificate(data: any): Promise<any> {
+  async createCertificate(data: LedgerCertificatePayload): Promise<LedgerCertificateResult> {
     const raw = await this.ctx.call('CreateCertificate', { data });
-    return this.ctx.unwrap(raw, 'CreateCertificateResult');
+    return this.ctx.unwrap<LedgerCertificateResult>(raw, 'CreateCertificateResult');
   }
 
-  async sendCertificate(data: any): Promise<boolean> {
+  async sendCertificate(data: LedgerCertificatePayload): Promise<boolean> {
     const raw = await this.ctx.call('SendCertificate', { data });
     return this.ctx.unwrapFlag(raw, 'SendCertificateResult');
   }
@@ -182,9 +192,9 @@ class LedgerMethods {
 class LedgerReportMethods {
   constructor(private readonly ctx: ServiceContext) {}
 
-  async create(data: any): Promise<any> {
+  async create(data: LedgerReportData): Promise<LedgerReport> {
     const raw = await this.ctx.call('CreateLedgerReport', { data });
-    return this.ctx.unwrap(raw, 'CreateLedgerReportResult');
+    return this.ctx.unwrap<LedgerReport>(raw, 'CreateLedgerReportResult');
   }
 
   async send(reportId: string): Promise<boolean> {
@@ -194,12 +204,12 @@ class LedgerReportMethods {
 
   async list(): Promise<LedgerReport[]> {
     const raw = await this.ctx.call('GetLedgerReports');
-    return toArray(this.ctx.unwrap<any>(raw, 'GetLedgerReportsResult'));
+    return this.ctx.unwrapArray<LedgerReport>(raw, 'GetLedgerReportsResult');
   }
 
-  async getData(reportId: string): Promise<any> {
+  async getData(reportId: string): Promise<LedgerReportData> {
     const raw = await this.ctx.call('GetLedgerReportData', { reportId });
-    return this.ctx.unwrap(raw, 'GetLedgerReportDataResult');
+    return this.ctx.unwrap<LedgerReportData>(raw, 'GetLedgerReportDataResult');
   }
 
   async getCompressedData(reportId: string): Promise<string> {
@@ -222,9 +232,9 @@ class LedgerReportMethods {
     return this.ctx.unwrapFlag(raw, 'UploadSignedLedgerReportResult');
   }
 
-  async getActiveForPeriod(period: string): Promise<any> {
+  async getActiveForPeriod(period: string): Promise<LedgerReportData> {
     const raw = await this.ctx.call('GetActiveLedgerReportWithDataForPeriod', { period });
-    return this.ctx.unwrap(raw, 'GetActiveLedgerReportWithDataForPeriodResult');
+    return this.ctx.unwrap<LedgerReportData>(raw, 'GetActiveLedgerReportWithDataForPeriodResult');
   }
 }
 
@@ -238,7 +248,7 @@ class CompanyMethods {
     return this.ctx.unwrap<CompanyInfo>(raw, 'GetCompanyInformationResult');
   }
 
-  async saveCompanyInfo(info: any): Promise<boolean> {
+  async saveCompanyInfo(info: CompanyInfo): Promise<boolean> {
     const raw = await this.ctx.call('SaveCompanyInformation', { info });
     return this.ctx.unwrapFlag(raw, 'SaveCompanyInformationResult');
   }
@@ -248,7 +258,7 @@ class CompanyMethods {
     return this.ctx.unwrap<AccountantInfo>(raw, 'GetAccountantInformationResult');
   }
 
-  async saveAccountantInfo(info: any): Promise<boolean> {
+  async saveAccountantInfo(info: AccountantInfo): Promise<boolean> {
     const raw = await this.ctx.call('SaveAccountantInformation', { info });
     return this.ctx.unwrapFlag(raw, 'SaveAccountantInformationResult');
   }

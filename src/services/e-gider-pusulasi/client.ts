@@ -1,13 +1,14 @@
 // Uyumsoft SDK — e-Gider Pusulası (ExpenseReceipt) Client
 import { BaseClient, type ServiceContext } from '../../core/base-client';
 import { UYUMSOFT_ENDPOINTS, type UyumsoftConfig, type PagedResult } from '../../core/types';
-import { toArray, SharedSystemMethods, buildPaginationAttrs } from '../../core/helpers';
+import { SharedSystemMethods, buildPaginationAttrs, toArray } from '../../core/helpers';
 import type {
   ExpenseReceiptListItem,
   ExpenseReceiptStatusInfo,
   ExpenseReceiptStatusWithLogInfo,
   ExpenseReceiptData,
   ExpenseReceiptIdentity,
+  ExpenseReceiptPayload,
 } from './types';
 
 /**
@@ -58,15 +59,20 @@ class ExpenseOutboxMethods {
   }
 
   async getStatus(ettns: string[]): Promise<ExpenseReceiptStatusInfo[]> {
-    const raw = await this.ctx.call('QueryExpenseReceiptStatus', { receiptIds: { string: ettns } });
-    return toArray(this.ctx.unwrap<any>(raw, 'QueryExpenseReceiptStatusResult'));
+    const raw = await this.ctx.call('QueryExpenseReceiptStatus', {
+      documentIds: { string: ettns },
+    });
+    return this.ctx.unwrapArray<ExpenseReceiptStatusInfo>(raw, 'QueryExpenseReceiptStatusResult');
   }
 
   async getStatusWithLogs(ettns: string[]): Promise<ExpenseReceiptStatusWithLogInfo[]> {
     const raw = await this.ctx.call('QueryExpenseReceiptStatusWithLogs', {
-      receiptIds: { string: ettns },
+      documentIds: { string: ettns },
     });
-    return toArray(this.ctx.unwrap<any>(raw, 'QueryExpenseReceiptStatusWithLogsResult'));
+    return this.ctx.unwrapArray<ExpenseReceiptStatusWithLogInfo>(
+      raw,
+      'QueryExpenseReceiptStatusWithLogsResult',
+    );
   }
 
   /** Create expense receipts from existing e-Archive invoices. */
@@ -81,23 +87,27 @@ class ExpenseOutboxMethods {
 class ExpenseSendMethods {
   constructor(private readonly ctx: ServiceContext) {}
 
-  async send(data: any): Promise<ExpenseReceiptIdentity[]> {
-    const raw = await this.ctx.call('SendExpenseReceipt', { expenseReceipts: data });
-    return toArray(this.ctx.unwrap<any>(raw, 'SendExpenseReceiptResult'));
+  async send(data: ExpenseReceiptPayload): Promise<ExpenseReceiptIdentity[]> {
+    const raw = await this.ctx.call('SendExpenseReceipt', {
+      expenseReceipts: { ExpenseReceiptInfo: toArray(data) },
+    });
+    return this.ctx.unwrapArray<ExpenseReceiptIdentity>(raw, 'SendExpenseReceiptResult');
   }
 
-  async saveAsDraft(data: any): Promise<ExpenseReceiptIdentity[]> {
-    const raw = await this.ctx.call('SaveAsDraft', { expenseReceipts: data });
-    return toArray(this.ctx.unwrap<any>(raw, 'SaveAsDraftResult'));
+  async saveAsDraft(data: ExpenseReceiptPayload): Promise<ExpenseReceiptIdentity[]> {
+    const raw = await this.ctx.call('SaveAsDraft', {
+      expenseReceipts: { ExpenseReceiptInfo: toArray(data) },
+    });
+    return this.ctx.unwrapArray<ExpenseReceiptIdentity>(raw, 'SaveAsDraftResult');
   }
 
   async sendDraft(ettns: string[]): Promise<boolean> {
-    const raw = await this.ctx.call('SendDraft', { expenseReceiptEttns: { string: ettns } });
+    const raw = await this.ctx.call('SendDraft', { documentIds: { string: ettns } });
     return this.ctx.unwrapFlag(raw, 'SendDraftResult');
   }
 
   async cancelDraft(ettns: string[]): Promise<boolean> {
-    const raw = await this.ctx.call('CancelDraft', { expenseReceiptEttns: { string: ettns } });
+    const raw = await this.ctx.call('CancelDraft', { documentIds: { string: ettns } });
     return this.ctx.unwrapFlag(raw, 'CancelDraftResult');
   }
 }

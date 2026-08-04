@@ -1,7 +1,7 @@
 // Uyumsoft SDK — e-Fatura Service Types
 // Generated from XSD: https://efatura.uyumsoft.com.tr/Services/Integration?xsd=xsd0
 
-import type { QuerySortMode } from '../../core/types';
+import type { QuerySortMode, UyumsoftDocumentPayload } from '../../core/types';
 export type { QuerySortMode } from '../../core/types';
 
 // ─── Enums ───────────────────────────────────────────────
@@ -495,7 +495,7 @@ export interface OutboxInvoiceListItem extends InvoiceListItemBase {
 
 /** Full invoice info (includes UBL-TR XML data) */
 export interface InvoiceInfo {
-  Invoice: any; // UBL-TR InvoiceType — complex XML
+  Invoice: UyumsoftDocumentPayload; // UBL-TR InvoiceType — complex XML
   TargetCustomer?: CustomerTarget;
   EArchiveInvoiceInfo?: EArchiveInvoiceInformation;
   Scenario: InvoiceScenarioChoosen;
@@ -557,6 +557,12 @@ export interface SmsMessageInformation {
   Subject?: string;
   BodyXsltIdentifier?: string;
   SmsAccountIdentifier?: string;
+}
+
+/** Invoice notification request payload. */
+export interface InvoiceNotificationRequest {
+  Mailing?: MailingInformation[];
+  Messaging?: SmsMessageInformation[];
 }
 
 /** Invoice status info */

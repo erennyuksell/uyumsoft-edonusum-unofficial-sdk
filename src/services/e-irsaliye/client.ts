@@ -1,7 +1,12 @@
 // Uyumsoft SDK — e-İrsaliye (Despatch) Client (Enterprise)
 import { BaseClient, type ServiceContext } from '../../core/base-client';
-import { UYUMSOFT_ENDPOINTS, type UyumsoftConfig, type PagedResult } from '../../core/types';
-import { toArray, SharedSystemMethods, buildPaginationAttrs } from '../../core/helpers';
+import {
+  UYUMSOFT_ENDPOINTS,
+  type PagedResult,
+  type SoapRequestParams,
+  type UyumsoftConfig,
+} from '../../core/types';
+import { SharedSystemMethods, buildPaginationAttrs } from '../../core/helpers';
 import type {
   DespatchListQuery,
   DespatchQuery,
@@ -15,6 +20,7 @@ import type {
   DespatchViewResult,
   DespatchEnvelopeData,
   DespatchSystemUser,
+  DespatchUserAliases,
 } from './types';
 
 /**
@@ -52,7 +58,7 @@ export class EIrsaliyeClient extends BaseClient {
 
 // ─── Helpers ─────────────────────────────────────────────
 
-function buildQuery(query: DespatchListQuery | DespatchQuery): any {
+function buildQuery(query: DespatchListQuery | DespatchQuery): SoapRequestParams {
   const { PageIndex, PageSize, ...rest } = query;
   return {
     $attributes: {
@@ -112,7 +118,7 @@ class DespatchInboxMethods {
     const raw = await this.ctx.call('QueryInboxDespatchStatus', {
       despatchIds: { string: despatchIds },
     });
-    return toArray(this.ctx.unwrap<any>(raw, 'QueryInboxDespatchStatusResult'));
+    return this.ctx.unwrapArray<DespatchStatusInfo>(raw, 'QueryInboxDespatchStatusResult');
   }
 
   /** Get despatch status with detailed processing logs. */
@@ -120,7 +126,10 @@ class DespatchInboxMethods {
     const raw = await this.ctx.call('GetInboxDespatchStatusWithLogs', {
       despatchIds: { string: despatchIds },
     });
-    return toArray(this.ctx.unwrap<any>(raw, 'GetInboxDespatchStatusWithLogsResult'));
+    return this.ctx.unwrapArray<DespatchStatusWithLogInfo>(
+      raw,
+      'GetInboxDespatchStatusWithLogsResult',
+    );
   }
 
   /** Mark despatches as "taken" (prevents re-fetching). */
@@ -185,7 +194,7 @@ class DespatchOutboxMethods {
     const raw = await this.ctx.call('QueryOutboxDespatchStatus', {
       despatchIds: { string: despatchIds },
     });
-    return toArray(this.ctx.unwrap<any>(raw, 'QueryOutboxDespatchStatusResult'));
+    return this.ctx.unwrapArray<DespatchStatusInfo>(raw, 'QueryOutboxDespatchStatusResult');
   }
 
   /** Get despatch status with detailed processing logs. */
@@ -193,7 +202,10 @@ class DespatchOutboxMethods {
     const raw = await this.ctx.call('GetOutboxDespatchStatusWithLogs', {
       despatchIds: { string: despatchIds },
     });
-    return toArray(this.ctx.unwrap<any>(raw, 'GetOutboxDespatchStatusWithLogsResult'));
+    return this.ctx.unwrapArray<DespatchStatusWithLogInfo>(
+      raw,
+      'GetOutboxDespatchStatusWithLogsResult',
+    );
   }
 
   /** Transfer outbox despatch to another branch. */
@@ -214,19 +226,19 @@ class DespatchSendMethods {
   /** Send one or more despatch advices. Returns document identities. */
   async despatch(despatches: DespatchInfo[]): Promise<DespatchStatusInfo[]> {
     const raw = await this.ctx.call('SendDespatch', { despatches: { DespatchInfo: despatches } });
-    return toArray(this.ctx.unwrap<any>(raw, 'SendDespatchResult'));
+    return this.ctx.unwrapArray<DespatchStatusInfo>(raw, 'SendDespatchResult');
   }
 
   /** Send compressed despatch (base64 gzip). Optimized for large batches. */
   async compressedSend(data: string, hash: string): Promise<DespatchStatusInfo[]> {
     const raw = await this.ctx.call('CompressedSendDespatch', { data: { Data: data, Hash: hash } });
-    return toArray(this.ctx.unwrap<any>(raw, 'CompressedSendDespatchResult'));
+    return this.ctx.unwrapArray<DespatchStatusInfo>(raw, 'CompressedSendDespatchResult');
   }
 
   /** Save despatch(s) as draft without sending. */
   async saveAsDraft(despatches: DespatchInfo[]): Promise<DespatchStatusInfo[]> {
     const raw = await this.ctx.call('SaveAsDraft', { despatches: { DespatchInfo: despatches } });
-    return toArray(this.ctx.unwrap<any>(raw, 'SaveAsDraftResult'));
+    return this.ctx.unwrapArray<DespatchStatusInfo>(raw, 'SaveAsDraftResult');
   }
 
   /** Send existing draft despatches (changes status from Draft → Queued). */
@@ -247,9 +259,9 @@ class DespatchSendMethods {
   }
 
   /** Transform external data and send as despatch. */
-  async transformAndSend(data: any): Promise<DespatchStatusInfo[]> {
+  async transformAndSend(data: SoapRequestParams): Promise<DespatchStatusInfo[]> {
     const raw = await this.ctx.call('TransformAndSend', data);
-    return toArray(this.ctx.unwrap<any>(raw, 'TransformAndSendResult'));
+    return this.ctx.unwrapArray<DespatchStatusInfo>(raw, 'TransformAndSendResult');
   }
 }
 
@@ -279,19 +291,19 @@ class ReceiptAdviceMethods {
   /** Send receipt advices. */
   async send(receiptAdvices: DespatchInfo[]): Promise<DespatchStatusInfo[]> {
     const raw = await this.ctx.call('SendReceiptAdvice', { receiptAdvices });
-    return toArray(this.ctx.unwrap<any>(raw, 'SendReceiptAdviceResult'));
+    return this.ctx.unwrapArray<DespatchStatusInfo>(raw, 'SendReceiptAdviceResult');
   }
 
   /** Send receipt advices as UBL-TR XML. */
   async sendUbl(receiptAdvices: DespatchInfo[]): Promise<DespatchStatusInfo[]> {
     const raw = await this.ctx.call('SendReceiptAdviceUbl', { receiptAdvices });
-    return toArray(this.ctx.unwrap<any>(raw, 'SendReceiptAdviceUblResult'));
+    return this.ctx.unwrapArray<DespatchStatusInfo>(raw, 'SendReceiptAdviceUblResult');
   }
 
   /** Save receipt advices as draft. */
   async saveAsDraft(receiptAdvices: DespatchInfo[]): Promise<DespatchStatusInfo[]> {
     const raw = await this.ctx.call('SaveReceiptAdviceAsDraft', { receiptAdvices });
-    return toArray(this.ctx.unwrap<any>(raw, 'SaveReceiptAdviceAsDraftResult'));
+    return this.ctx.unwrapArray<DespatchStatusInfo>(raw, 'SaveReceiptAdviceAsDraftResult');
   }
 
   /** Query status of receipt advices. */
@@ -299,7 +311,7 @@ class ReceiptAdviceMethods {
     const raw = await this.ctx.call('QueryReceiptAdviceStatus', {
       receiptAdviceIds: { string: receiptAdviceIds },
     });
-    return toArray(this.ctx.unwrap<any>(raw, 'QueryReceiptAdviceStatusResult'));
+    return this.ctx.unwrapArray<ReceiptAdviceStatusInfo>(raw, 'QueryReceiptAdviceStatusResult');
   }
 
   /** Get receipt advice HTML view. */
@@ -360,8 +372,11 @@ class DespatchManageMethods {
   async clone(
     despatchIds: string[],
   ): Promise<{ SourceDespatchId: string; ClonedDespatchId: string }[]> {
-    const raw = await this.ctx.call('CloneDespatches', { despatchIds: { string: despatchIds } });
-    return toArray(this.ctx.unwrap<any>(raw, 'CloneDespatchesResult'));
+    const raw = await this.ctx.call('CloneDespatches', { despatchesIds: { string: despatchIds } });
+    return this.ctx.unwrapArray<{ SourceDespatchId: string; ClonedDespatchId: string }>(
+      raw,
+      'CloneDespatchesResult',
+    );
   }
 
   /** Move despatches back to draft status for editing. */
@@ -409,9 +424,7 @@ class DespatchUserMethods {
   }
 
   /** Get user aliases (receiver/sender boxes) for a specific VKN. */
-  async getAliases(
-    vknTckn: string,
-  ): Promise<{ Definition: any; ReceiverboxAliases: any[]; SenderboxAliases: any[] }> {
+  async getAliases(vknTckn: string): Promise<DespatchUserAliases> {
     const raw = await this.ctx.call('GetUserAliasses', { vknTckn });
     return this.ctx.unwrap(raw, 'GetUserAliassesResult');
   }

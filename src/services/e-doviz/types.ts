@@ -1,9 +1,8 @@
 // Uyumsoft SDK — e-Döviz (ForeignExchange) Types
-import type { LogRecordItem, QuerySortMode } from '../../core/types';
+import type { LogRecordItem, QuerySortMode, UnknownRecord } from '../../core/types';
 
-export interface FxListItem {
-  [key: string]: any;
-}
+export type FxListItem = UnknownRecord;
+export type FxPayload = UnknownRecord | UnknownRecord[];
 export interface FxStatusInfo {
   Ettn: string;
   Status: string;

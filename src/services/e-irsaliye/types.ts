@@ -1,7 +1,7 @@
 // Uyumsoft SDK — e-İrsaliye (Despatch) Service Types
 // Derived from DespatchIntegration XSD: xsd=xsd0
 
-import type { LogRecordItem, QuerySortMode } from '../../core/types';
+import type { LogRecordItem, QuerySortMode, UnknownRecord } from '../../core/types';
 
 // ─── Enums ───────────────────────────────────────────────
 
@@ -175,13 +175,13 @@ export interface DespatchAdviceDocument {
   /** Line count */
   LineCountNumeric?: number;
   /** Supplier party (sender) */
-  DespatchSupplierParty?: any;
+  DespatchSupplierParty?: UnknownRecord;
   /** Customer party (receiver) */
-  DeliveryCustomerParty?: any;
+  DeliveryCustomerParty?: UnknownRecord;
   /** Shipment details (driver, vehicle, etc.) */
-  Shipment?: any;
+  Shipment?: UnknownRecord;
   /** Despatch lines (items) */
-  DespatchLine?: any[];
+  DespatchLine?: UnknownRecord[];
 }
 
 /** Despatch raw data (base64 encoded XML) */
@@ -290,4 +290,10 @@ export interface DespatchEnvelopeData {
   Status: DespatchEnvelopeStatus;
   /** Numeric status code */
   StatusCode: number;
+}
+
+export interface DespatchUserAliases {
+  Definition: UnknownRecord;
+  ReceiverboxAliases: UnknownRecord[];
+  SenderboxAliases: UnknownRecord[];
 }

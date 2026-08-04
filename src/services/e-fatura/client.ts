@@ -1,7 +1,13 @@
 // Uyumsoft SDK — e-Fatura Client (Enterprise)
 import { BaseClient } from '../../core/base-client';
-import { UYUMSOFT_ENDPOINTS, type UyumsoftConfig, type PagedResult } from '../../core/types';
-import { toArray, SharedSystemMethods, buildPaginationAttrs } from '../../core/helpers';
+import {
+  UYUMSOFT_ENDPOINTS,
+  type PagedResult,
+  type SoapRequestParams,
+  type UyumsoftConfig,
+  type UyumsoftDocumentPayload,
+} from '../../core/types';
+import { SharedSystemMethods, buildPaginationAttrs } from '../../core/helpers';
 import type {
   InboxInvoiceListQuery,
   OutboxInvoiceListQuery,
@@ -26,6 +32,8 @@ import type {
   QueryType,
   AliasType,
   InvoiceStatus,
+  MailingInformation,
+  SmsMessageInformation,
 } from './types';
 import type { ServiceContext } from '../../core/base-client';
 
@@ -61,20 +69,22 @@ export class EFaturaClient extends BaseClient {
 
 // ─── Helpers ─────────────────────────────────────────────
 
-function buildListQuery(query: InboxInvoiceListQuery | OutboxInvoiceListQuery): any {
+function buildListQuery(query: InboxInvoiceListQuery | OutboxInvoiceListQuery): SoapRequestParams {
   const { PageIndex, PageSize, ...rest } = query;
+  const onlyNewestInvoices = 'OnlyNewestInvoices' in query ? query.OnlyNewestInvoices : undefined;
+  const body: SoapRequestParams = { ...rest };
+  delete body.OnlyNewestInvoices;
+
   return {
     $attributes: {
       ...buildPaginationAttrs(PageIndex, PageSize),
-      ...('OnlyNewestInvoices' in query && query.OnlyNewestInvoices != null
-        ? { OnlyNewestInvoices: query.OnlyNewestInvoices }
-        : {}),
+      ...(onlyNewestInvoices != null ? { OnlyNewestInvoices: onlyNewestInvoices } : {}),
     },
-    ...rest,
+    ...body,
   };
 }
 
-function buildInvoiceQuery(query: InboxInvoiceQuery): any {
+function buildInvoiceQuery(query: InboxInvoiceQuery): SoapRequestParams {
   const { PageIndex, PageSize, ...rest } = query;
   return {
     $attributes: {
@@ -120,7 +130,7 @@ class EFaturaSystemMethods extends SharedSystemMethods {
   /** Get customer credit/subscription info (remaining credits, contract period). */
   async getCreditInfo(): Promise<CustomerCreditInfo[]> {
     const raw = await this.ctx.call('GetCustomerCreditInfo');
-    return toArray(this.ctx.unwrap<any>(raw, 'GetCustomerCreditInfoResult'));
+    return this.ctx.unwrapArray<CustomerCreditInfo>(raw, 'GetCustomerCreditInfoResult');
   }
 
   /** Get user verification info without credential check. */
@@ -182,7 +192,7 @@ class InboxMethods {
     const raw = await this.ctx.call('QueryInboxInvoiceStatus', {
       invoiceIds: { string: invoiceIds },
     });
-    return toArray(this.ctx.unwrap<any>(raw, 'QueryInboxInvoiceStatusResult'));
+    return this.ctx.unwrapArray<InvoiceStatusInfo>(raw, 'QueryInboxInvoiceStatusResult');
   }
 
   /** Get invoice status with detailed processing logs. */
@@ -190,7 +200,10 @@ class InboxMethods {
     const raw = await this.ctx.call('GetInboxInvoiceStatusWithLogs', {
       invoiceIds: { string: invoiceIds },
     });
-    return toArray(this.ctx.unwrap<any>(raw, 'GetInboxInvoiceStatusWithLogsResult'));
+    return this.ctx.unwrapArray<InvoiceStatusWithLogInfo>(
+      raw,
+      'GetInboxInvoiceStatusWithLogsResult',
+    );
   }
 
   /** Mark invoices as "taken" (prevents re-fetching by `SetTaken` queries). */
@@ -212,7 +225,7 @@ class InboxMethods {
     const raw = await this.ctx.call('QueryDocumentResponseStatus', {
       invoiceIds: { string: invoiceIds },
     });
-    return toArray(this.ctx.unwrap<any>(raw, 'QueryDocumentResponseStatusResult'));
+    return this.ctx.unwrapArray<InvoiceStatusInfo>(raw, 'QueryDocumentResponseStatusResult');
   }
 }
 
@@ -274,7 +287,7 @@ class OutboxMethods {
     const raw = await this.ctx.call('QueryOutboxInvoiceStatus', {
       invoiceIds: { string: invoiceIds },
     });
-    return toArray(this.ctx.unwrap<any>(raw, 'QueryOutboxInvoiceStatusResult'));
+    return this.ctx.unwrapArray<InvoiceStatusInfo>(raw, 'QueryOutboxInvoiceStatusResult');
   }
 
   /** Get invoice status with detailed processing logs. */
@@ -282,7 +295,10 @@ class OutboxMethods {
     const raw = await this.ctx.call('GetOutboxInvoiceStatusWithLogs', {
       invoiceIds: { string: invoiceIds },
     });
-    return toArray(this.ctx.unwrap<any>(raw, 'GetOutboxInvoiceStatusWithLogsResult'));
+    return this.ctx.unwrapArray<InvoiceStatusWithLogInfo>(
+      raw,
+      'GetOutboxInvoiceStatusWithLogsResult',
+    );
   }
 
   /** Query GTB (Customs) responses for export invoices. */
@@ -290,7 +306,7 @@ class OutboxMethods {
     const raw = await this.ctx.call('QueryInvoiceGtbResponses', {
       invoiceIds: { string: invoiceIds },
     });
-    return toArray(this.ctx.unwrap<any>(raw, 'QueryInvoiceGtbResponsesResult'));
+    return this.ctx.unwrapArray<InvoiceStatusInfo>(raw, 'QueryInvoiceGtbResponsesResult');
   }
 }
 
@@ -302,25 +318,25 @@ class SendMethods {
   /** Send one or more invoices. Returns document identities with assigned IDs. */
   async invoice(invoices: InvoiceInfo[]): Promise<InvoiceIdentity[]> {
     const raw = await this.ctx.call('SendInvoice', { invoices: { InvoiceInfo: invoices } });
-    return toArray(this.ctx.unwrap<any>(raw, 'SendInvoiceResult'));
+    return this.ctx.unwrapArray<InvoiceIdentity>(raw, 'SendInvoiceResult');
   }
 
   /** Save invoice(s) as draft without sending. */
   async saveAsDraft(invoices: InvoiceInfo[]): Promise<InvoiceIdentity[]> {
     const raw = await this.ctx.call('SaveAsDraft', { invoices: { InvoiceInfo: invoices } });
-    return toArray(this.ctx.unwrap<any>(raw, 'SaveAsDraftResult'));
+    return this.ctx.unwrapArray<InvoiceIdentity>(raw, 'SaveAsDraftResult');
   }
 
   /** Send compressed invoice (base64 gzip). Optimized for large batches. */
   async compressedSend(data: string, hash: string): Promise<InvoiceIdentity[]> {
     const raw = await this.ctx.call('CompressedSendInvoice', { data: { Data: data, Hash: hash } });
-    return toArray(this.ctx.unwrap<any>(raw, 'CompressedSendInvoiceResult'));
+    return this.ctx.unwrapArray<InvoiceIdentity>(raw, 'CompressedSendInvoiceResult');
   }
 
   /** Save compressed invoice as draft. */
   async compressedSaveAsDraft(data: string, hash: string): Promise<InvoiceIdentity[]> {
     const raw = await this.ctx.call('CompressedSaveAsDraft', { data: { Data: data, Hash: hash } });
-    return toArray(this.ctx.unwrap<any>(raw, 'CompressedSaveAsDraftResult'));
+    return this.ctx.unwrapArray<InvoiceIdentity>(raw, 'CompressedSaveAsDraftResult');
   }
 
   /** Send existing draft invoices (changes status from Draft → Queued). */
@@ -342,7 +358,7 @@ class ManageMethods {
   constructor(private readonly ctx: ServiceContext) {}
 
   /** Validate a UBL-TR invoice XML against the schema. */
-  async validate(invoice: any): Promise<boolean> {
+  async validate(invoice: UyumsoftDocumentPayload): Promise<boolean> {
     const raw = await this.ctx.call('ValidateInvoice', { invoice });
     return this.ctx.unwrapFlag(raw, 'ValidateInvoiceResult');
   }
@@ -386,7 +402,10 @@ class ManageMethods {
     invoiceIds: string[],
   ): Promise<{ SourceInvoiceId: string; ClonedInvoiceId: string }[]> {
     const raw = await this.ctx.call('CloneInvoices', { invoiceIds: { string: invoiceIds } });
-    return toArray(this.ctx.unwrap<any>(raw, 'CloneInvoicesResult'));
+    return this.ctx.unwrapArray<{ SourceInvoiceId: string; ClonedInvoiceId: string }>(
+      raw,
+      'CloneInvoicesResult',
+    );
   }
 
   /** Retry sending failed invoices. */
@@ -421,8 +440,8 @@ class ManageMethods {
   /** Queue invoice notification (email/SMS delivery). */
   async queueNotification(
     documentId: string,
-    mailing?: any[],
-    messaging?: any[],
+    mailing?: MailingInformation[],
+    messaging?: SmsMessageInformation[],
   ): Promise<boolean> {
     const raw = await this.ctx.call('QueueInvoiceNotification', {
       request: {

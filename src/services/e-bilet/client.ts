@@ -2,7 +2,15 @@
 import { BaseClient, type ServiceContext } from '../../core/base-client';
 import { UYUMSOFT_ENDPOINTS, type UyumsoftConfig, type PagedResult } from '../../core/types';
 import { SharedSystemMethods, buildPaginationAttrs } from '../../core/helpers';
-import type { TicketListItem, TicketData, PassengerListData } from './types';
+import type {
+  TicketListItem,
+  TicketData,
+  PassengerListData,
+  TicketPayload,
+  TicketSendResult,
+  PassengerListPayload,
+  PassengerListSendResult,
+} from './types';
 
 /**
  * e-Bilet client — Ulaşım bileti (otobüs, uçak vb.) belgeleme.
@@ -22,9 +30,9 @@ export class EBiletClient extends BaseClient {
 class TicketMethods {
   constructor(private readonly ctx: ServiceContext) {}
 
-  async send(ticket: any): Promise<any> {
+  async send(ticket: TicketPayload): Promise<TicketSendResult> {
     const raw = await this.ctx.call('SendTicket', { ticket });
-    return this.ctx.unwrap(raw, 'SendTicketResult');
+    return this.ctx.unwrap<TicketSendResult>(raw, 'SendTicketResult');
   }
 
   async get(documentId: string): Promise<TicketData> {
@@ -32,8 +40,12 @@ class TicketMethods {
     return this.ctx.unwrap<TicketData>(raw, 'GetTicketResult');
   }
 
-  async cancel(documentId: string): Promise<boolean> {
-    const raw = await this.ctx.call('CancelTicket', { documentId });
+  async cancel(documentId: string, cancelDate = new Date().toISOString()): Promise<boolean> {
+    const raw = await this.ctx.call('CancelTicket', {
+      cancellationContext: {
+        $attributes: { TicketDocumentId: documentId, CancelDate: cancelDate },
+      },
+    });
     return this.ctx.unwrapFlag(raw, 'CancelTicketResult');
   }
 
@@ -44,9 +56,9 @@ class TicketMethods {
     return this.ctx.unwrapPaged<TicketListItem>(raw, 'QueryTicketsResult');
   }
 
-  async sendPassengerList(data: any): Promise<any> {
+  async sendPassengerList(data: PassengerListPayload): Promise<PassengerListSendResult> {
     const raw = await this.ctx.call('SendPassengerList', { data });
-    return this.ctx.unwrap(raw, 'SendPassengerListResult');
+    return this.ctx.unwrap<PassengerListSendResult>(raw, 'SendPassengerListResult');
   }
 
   async getPassengerList(documentId: string): Promise<PassengerListData> {

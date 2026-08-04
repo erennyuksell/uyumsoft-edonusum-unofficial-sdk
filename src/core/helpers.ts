@@ -1,6 +1,6 @@
 // Uyumsoft SDK — Shared Helpers & Base Domain Classes
 import type { ServiceContext } from './base-client';
-import type { QuerySortMode } from './types';
+import type { QuerySortMode, UnknownRecord } from './types';
 
 // ─── Utility Functions ───────────────────────────────────
 
@@ -22,31 +22,32 @@ export function toArray<T>(val: T | T[] | undefined): T[] {
  * This flattens `$attributes` into the parent and replaces `$value`-only objects
  * with the scalar value, so responses match our existing types.
  */
-export function normalizeResponse<T>(value: any): T {
-  if (value === null || value === undefined) return value;
-  if (typeof value !== 'object') return value;
+export function normalizeResponse<T>(value: unknown): T {
+  if (value === null || value === undefined) return value as T;
+  if (typeof value !== 'object') return value as T;
   // strong-soap auto-converts DateTime XML to JS Date objects — preserve as ISO string
   if (value instanceof Date) return value.toISOString() as T;
   if (Array.isArray(value)) return value.map((v) => normalizeResponse(v)) as T;
 
+  const soapObject = value as UnknownRecord;
   const keys = Object.keys(value);
 
   // If object only has $attributes, flatten it
   if (keys.length === 1 && keys[0] === '$attributes') {
-    return normalizeResponse(value.$attributes);
+    return normalizeResponse(soapObject.$attributes);
   }
 
   // If object has $value (text content) + possibly $attributes
-  if ('$value' in value) {
+  if ('$value' in soapObject) {
     // Simple scalar with attributes — return just the value for most cases
-    if (keys.length <= 2 && '$attributes' in value) {
-      return value.$value;
+    if (keys.length <= 2 && '$attributes' in soapObject) {
+      return soapObject.$value as T;
     }
-    return value.$value;
+    return soapObject.$value as T;
   }
 
   // Recursively normalize all nested objects, spreading $attributes into parent
-  const result: Record<string, any> = {};
+  const result: UnknownRecord = {};
   for (const [k, v] of Object.entries(value)) {
     if (k === '$attributes' && typeof v === 'object' && v !== null) {
       // Spread attributes into parent
@@ -93,7 +94,7 @@ export class SharedSystemMethods {
   }
 
   /** List all available SOAP methods on this service endpoint. */
-  async describe(): Promise<Record<string, any>> {
+  async describe(): Promise<UnknownRecord> {
     return this.ctx.describeService();
   }
 }

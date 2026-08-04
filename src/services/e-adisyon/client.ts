@@ -1,13 +1,14 @@
 // Uyumsoft SDK — e-Adisyon (GuestCheck) Client
 import { BaseClient, type ServiceContext } from '../../core/base-client';
 import { UYUMSOFT_ENDPOINTS, type UyumsoftConfig, type PagedResult } from '../../core/types';
-import { toArray, SharedSystemMethods, buildPaginationAttrs } from '../../core/helpers';
+import { SharedSystemMethods, buildPaginationAttrs, toArray } from '../../core/helpers';
 import type {
   GuestCheckListItem,
   GuestCheckStatusInfo,
   GuestCheckStatusWithLogInfo,
   GuestCheckData,
   GuestCheckIdentity,
+  GuestCheckPayload,
 } from './types';
 
 /**
@@ -58,20 +59,23 @@ class AdisyonOutboxMethods {
   }
 
   async getStatus(ettns: string[]): Promise<GuestCheckStatusInfo[]> {
-    const raw = await this.ctx.call('QueryGuestCheckStatus', { receiptIds: { string: ettns } });
-    return toArray(this.ctx.unwrap<any>(raw, 'QueryGuestCheckStatusResult'));
+    const raw = await this.ctx.call('QueryGuestCheckStatus', { documentIds: { string: ettns } });
+    return this.ctx.unwrapArray<GuestCheckStatusInfo>(raw, 'QueryGuestCheckStatusResult');
   }
 
   async getStatusWithLogs(ettns: string[]): Promise<GuestCheckStatusWithLogInfo[]> {
     const raw = await this.ctx.call('QueryGuestCheckStatusWithLogs', {
-      receiptIds: { string: ettns },
+      documentIds: { string: ettns },
     });
-    return toArray(this.ctx.unwrap<any>(raw, 'QueryGuestCheckStatusWithLogsResult'));
+    return this.ctx.unwrapArray<GuestCheckStatusWithLogInfo>(
+      raw,
+      'QueryGuestCheckStatusWithLogsResult',
+    );
   }
 
-  async cancel(ettn: string, cancelDate: string): Promise<boolean> {
+  async cancel(ettn: string, cancelDate = new Date().toISOString()): Promise<boolean> {
     const raw = await this.ctx.call('CancelGuestCheck', {
-      cancellationContext: { $attributes: { GuestCheckEttn: ettn, CancelDate: cancelDate } },
+      cancellationContext: { $attributes: { DocumentId: ettn, CancelDate: cancelDate } },
     });
     return this.ctx.unwrapFlag(raw, 'CancelGuestCheckResult');
   }
@@ -80,23 +84,27 @@ class AdisyonOutboxMethods {
 class AdisyonSendMethods {
   constructor(private readonly ctx: ServiceContext) {}
 
-  async send(data: any): Promise<GuestCheckIdentity[]> {
-    const raw = await this.ctx.call('SendGuestCheck', { guestChecks: data });
-    return toArray(this.ctx.unwrap<any>(raw, 'SendGuestCheckResult'));
+  async send(data: GuestCheckPayload): Promise<GuestCheckIdentity[]> {
+    const raw = await this.ctx.call('SendGuestCheck', {
+      guestChecks: { GuestCheckInfo: toArray(data) },
+    });
+    return this.ctx.unwrapArray<GuestCheckIdentity>(raw, 'SendGuestCheckResult');
   }
 
-  async saveAsDraft(data: any): Promise<GuestCheckIdentity[]> {
-    const raw = await this.ctx.call('SaveAsDraft', { guestChecks: data });
-    return toArray(this.ctx.unwrap<any>(raw, 'SaveAsDraftResult'));
+  async saveAsDraft(data: GuestCheckPayload): Promise<GuestCheckIdentity[]> {
+    const raw = await this.ctx.call('SaveAsDraft', {
+      guestChecks: { GuestCheckInfo: toArray(data) },
+    });
+    return this.ctx.unwrapArray<GuestCheckIdentity>(raw, 'SaveAsDraftResult');
   }
 
   async sendDraft(ettns: string[]): Promise<boolean> {
-    const raw = await this.ctx.call('SendDraft', { guestCheckEttns: { string: ettns } });
+    const raw = await this.ctx.call('SendDraft', { documentIds: { string: ettns } });
     return this.ctx.unwrapFlag(raw, 'SendDraftResult');
   }
 
   async cancelDraft(ettns: string[]): Promise<boolean> {
-    const raw = await this.ctx.call('CancelDraft', { guestCheckEttns: { string: ettns } });
+    const raw = await this.ctx.call('CancelDraft', { documentIds: { string: ettns } });
     return this.ctx.unwrapFlag(raw, 'CancelDraftResult');
   }
 }

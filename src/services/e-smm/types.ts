@@ -1,7 +1,7 @@
 // Uyumsoft SDK — e-SMM (Voucher) Service Types
 // Derived from VoucherIntegration XSD
 
-import type { LogRecordItem, QuerySortMode } from '../../core/types';
+import type { LogRecordItem, QuerySortMode, UnknownRecord } from '../../core/types';
 
 // ─── Enums ───────────────────────────────────────────────
 
@@ -173,3 +173,5 @@ export interface VoucherCancellationContext {
   /** Cancellation date (ISO 8601) */
   CancelDate: string;
 }
+
+export type VoucherPayload = UnknownRecord;

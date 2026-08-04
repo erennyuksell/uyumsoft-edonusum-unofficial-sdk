@@ -6,6 +6,7 @@ import {
   UyumsoftAuthError,
   buildUyumsoftInvoiceInfo,
   type UblInvoiceInput,
+  type UnknownRecord,
 } from '../src/index';
 
 const invoiceInput: UblInvoiceInput = {
@@ -87,6 +88,6 @@ describe('public API', () => {
     expect(invoiceInfo.Scenario).toBe(EFaturaTypes.InvoiceScenarioChoosen.Automated);
     expect(invoiceInfo.TargetCustomer.VknTckn).toBe('11111111111');
     expect(invoiceInfo.TargetCustomer.Alias).toBe('urn:mail:defaultpk@uyumsoft.com.tr');
-    expect(invoiceInfo.Invoice.InvoiceLine).toHaveLength(1);
+    expect((invoiceInfo.Invoice as UnknownRecord).InvoiceLine).toHaveLength(1);
   });
 });

@@ -8,7 +8,7 @@ export interface UyumsoftConfig {
   username: string;
   /** API password */
   password: string;
-  /** Environment: 'test' uses test WSDL endpoints, 'production' uses live */
+  /** Environment: 'test' uses test WSDL endpoints, 'production' uses live (default: 'test') */
   environment?: 'test' | 'production';
   /** Request timeout in milliseconds (default: 30000) */
   timeout?: number;
@@ -34,13 +34,22 @@ export interface RetryConfig {
 
 /** Logger interface — plug in any logger (pino, winston, console) */
 export interface UyumsoftLogger {
-  debug?(message: string, meta?: Record<string, any>): void;
-  info?(message: string, meta?: Record<string, any>): void;
-  warn?(message: string, meta?: Record<string, any>): void;
-  error?(message: string, meta?: Record<string, any>): void;
+  debug?(message: string, meta?: UnknownRecord): void;
+  info?(message: string, meta?: UnknownRecord): void;
+  warn?(message: string, meta?: UnknownRecord): void;
+  error?(message: string, meta?: UnknownRecord): void;
 }
 
 // ─── Response Types ──────────────────────────────────────
+
+/** Flexible object used at SOAP and UBL boundaries where the WSDL owns the exact shape. */
+export type UnknownRecord = Record<string, unknown>;
+
+/** SOAP request parameter object passed to strong-soap. */
+export type SoapRequestParams = UnknownRecord;
+
+/** UBL/XML document object accepted by Uyumsoft SOAP operations. */
+export type UyumsoftDocumentPayload = string | UnknownRecord;
 
 /** Paginated response wrapper */
 export interface PagedResult<T> {

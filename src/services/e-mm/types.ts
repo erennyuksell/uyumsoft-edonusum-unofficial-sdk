@@ -1,7 +1,7 @@
 // Uyumsoft SDK — e-MM (Producer Receipt / Müstahsil Makbuzu) Service Types
 // Derived from ProducerReceiptIntegration XSD
 
-import type { LogRecordItem, QuerySortMode } from '../../core/types';
+import type { LogRecordItem, QuerySortMode, UnknownRecord } from '../../core/types';
 
 // ─── Enums ───────────────────────────────────────────────
 
@@ -144,3 +144,5 @@ export interface ClonedProducerReceiptInfo {
   /** Cloned receipt ID */
   ClonedInvoiceId: string;
 }
+
+export type ProducerReceiptPayload = UnknownRecord;

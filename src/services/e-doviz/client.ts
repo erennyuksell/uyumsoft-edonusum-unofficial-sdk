@@ -1,8 +1,15 @@
 // Uyumsoft SDK — e-Döviz (ForeignExchange) Client
 import { BaseClient, type ServiceContext } from '../../core/base-client';
 import { UYUMSOFT_ENDPOINTS, type UyumsoftConfig, type PagedResult } from '../../core/types';
-import { toArray, SharedSystemMethods, buildPaginationAttrs } from '../../core/helpers';
-import type { FxListItem, FxStatusInfo, FxStatusWithLogInfo, FxData, FxIdentity } from './types';
+import { SharedSystemMethods, buildPaginationAttrs, toArray } from '../../core/helpers';
+import type {
+  FxListItem,
+  FxStatusInfo,
+  FxStatusWithLogInfo,
+  FxData,
+  FxIdentity,
+  FxPayload,
+} from './types';
 
 /**
  * e-Döviz client — Döviz alım/satım belgesi.
@@ -53,28 +60,31 @@ class FxOutboxMethods {
 
   async getStatus(ettns: string[]): Promise<FxStatusInfo[]> {
     const raw = await this.ctx.call('QueryForeignExchangeStatus', {
-      receiptIds: { string: ettns },
+      documentIds: { string: ettns },
     });
-    return toArray(this.ctx.unwrap<any>(raw, 'QueryForeignExchangeStatusResult'));
+    return this.ctx.unwrapArray<FxStatusInfo>(raw, 'QueryForeignExchangeStatusResult');
   }
 
   async getStatusWithLogs(ettns: string[]): Promise<FxStatusWithLogInfo[]> {
     const raw = await this.ctx.call('QueryForeignExchangeStatusWithLogs', {
-      receiptIds: { string: ettns },
+      documentIds: { string: ettns },
     });
-    return toArray(this.ctx.unwrap<any>(raw, 'QueryForeignExchangeStatusWithLogsResult'));
+    return this.ctx.unwrapArray<FxStatusWithLogInfo>(
+      raw,
+      'QueryForeignExchangeStatusWithLogsResult',
+    );
   }
 
-  async cancel(ettn: string, cancelDate: string): Promise<boolean> {
+  async cancel(ettn: string, cancelDate = new Date().toISOString()): Promise<boolean> {
     const raw = await this.ctx.call('RequestCancelForeignExchange', {
-      cancellationContext: { $attributes: { ForeignExchangeEttn: ettn, CancelDate: cancelDate } },
+      context: { $attributes: { DocumentId: ettn, CancelDate: cancelDate } },
     });
     return this.ctx.unwrapFlag(raw, 'RequestCancelForeignExchangeResult');
   }
 
   async retrySend(ettns: string[]): Promise<boolean> {
     const raw = await this.ctx.call('RetrySendForeignExchanges', {
-      foreignExchangeEttns: { string: ettns },
+      documentIds: { string: ettns },
     });
     return this.ctx.unwrapFlag(raw, 'RetrySendForeignExchangesResult');
   }
@@ -83,23 +93,27 @@ class FxOutboxMethods {
 class FxSendMethods {
   constructor(private readonly ctx: ServiceContext) {}
 
-  async send(data: any): Promise<FxIdentity[]> {
-    const raw = await this.ctx.call('SendForeignExchange', { foreignExchanges: data });
-    return toArray(this.ctx.unwrap<any>(raw, 'SendForeignExchangeResult'));
+  async send(data: FxPayload): Promise<FxIdentity[]> {
+    const raw = await this.ctx.call('SendForeignExchange', {
+      exchanges: { ForeignExchangeInfo: toArray(data) },
+    });
+    return this.ctx.unwrapArray<FxIdentity>(raw, 'SendForeignExchangeResult');
   }
 
-  async saveAsDraft(data: any): Promise<FxIdentity[]> {
-    const raw = await this.ctx.call('SaveAsDraft', { foreignExchanges: data });
-    return toArray(this.ctx.unwrap<any>(raw, 'SaveAsDraftResult'));
+  async saveAsDraft(data: FxPayload): Promise<FxIdentity[]> {
+    const raw = await this.ctx.call('SaveAsDraft', {
+      exchanges: { ForeignExchangeInfo: toArray(data) },
+    });
+    return this.ctx.unwrapArray<FxIdentity>(raw, 'SaveAsDraftResult');
   }
 
   async sendDraft(ettns: string[]): Promise<boolean> {
-    const raw = await this.ctx.call('SendDraft', { foreignExchangeEttns: { string: ettns } });
+    const raw = await this.ctx.call('SendDraft', { documentIds: { string: ettns } });
     return this.ctx.unwrapFlag(raw, 'SendDraftResult');
   }
 
   async cancelDraft(ettns: string[]): Promise<boolean> {
-    const raw = await this.ctx.call('CancelDraft', { foreignExchangeEttns: { string: ettns } });
+    const raw = await this.ctx.call('CancelDraft', { documentIds: { string: ettns } });
     return this.ctx.unwrapFlag(raw, 'CancelDraftResult');
   }
 }

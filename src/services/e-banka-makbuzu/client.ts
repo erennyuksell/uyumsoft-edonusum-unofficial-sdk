@@ -1,13 +1,14 @@
 // Uyumsoft SDK — e-Banka Makbuzu (BankReceipt) Client
 import { BaseClient, type ServiceContext } from '../../core/base-client';
 import { UYUMSOFT_ENDPOINTS, type UyumsoftConfig, type PagedResult } from '../../core/types';
-import { toArray, SharedSystemMethods, buildPaginationAttrs } from '../../core/helpers';
+import { SharedSystemMethods, buildPaginationAttrs, toArray } from '../../core/helpers';
 import type {
   BankReceiptListItem,
   BankReceiptStatusInfo,
   BankReceiptStatusWithLogInfo,
   BankReceiptData,
   BankReceiptIdentity,
+  BankReceiptPayload,
 } from './types';
 
 /**
@@ -58,20 +59,23 @@ class BankReceiptOutboxMethods {
   }
 
   async getStatus(ettns: string[]): Promise<BankReceiptStatusInfo[]> {
-    const raw = await this.ctx.call('QueryBankReceiptStatus', { receiptIds: { string: ettns } });
-    return toArray(this.ctx.unwrap<any>(raw, 'QueryBankReceiptStatusResult'));
+    const raw = await this.ctx.call('QueryBankReceiptStatus', { documentIds: { string: ettns } });
+    return this.ctx.unwrapArray<BankReceiptStatusInfo>(raw, 'QueryBankReceiptStatusResult');
   }
 
   async getStatusWithLogs(ettns: string[]): Promise<BankReceiptStatusWithLogInfo[]> {
     const raw = await this.ctx.call('QueryBankReceiptStatusWithLogs', {
-      receiptIds: { string: ettns },
+      documentIds: { string: ettns },
     });
-    return toArray(this.ctx.unwrap<any>(raw, 'QueryBankReceiptStatusWithLogsResult'));
+    return this.ctx.unwrapArray<BankReceiptStatusWithLogInfo>(
+      raw,
+      'QueryBankReceiptStatusWithLogsResult',
+    );
   }
 
-  async cancel(ettn: string, cancelDate: string): Promise<boolean> {
+  async cancel(ettn: string, cancelDate = new Date().toISOString()): Promise<boolean> {
     const raw = await this.ctx.call('CancelBankReceipt', {
-      cancellationContext: { $attributes: { BankReceiptEttn: ettn, CancelDate: cancelDate } },
+      cancellationContext: { $attributes: { DocumentId: ettn, CancelDate: cancelDate } },
     });
     return this.ctx.unwrapFlag(raw, 'CancelBankReceiptResult');
   }
@@ -80,23 +84,27 @@ class BankReceiptOutboxMethods {
 class BankReceiptSendMethods {
   constructor(private readonly ctx: ServiceContext) {}
 
-  async send(data: any): Promise<BankReceiptIdentity[]> {
-    const raw = await this.ctx.call('SendBankReceipt', { bankReceipts: data });
-    return toArray(this.ctx.unwrap<any>(raw, 'SendBankReceiptResult'));
+  async send(data: BankReceiptPayload): Promise<BankReceiptIdentity[]> {
+    const raw = await this.ctx.call('SendBankReceipt', {
+      bankReceipts: { BankReceiptInfo: toArray(data) },
+    });
+    return this.ctx.unwrapArray<BankReceiptIdentity>(raw, 'SendBankReceiptResult');
   }
 
-  async saveAsDraft(data: any): Promise<BankReceiptIdentity[]> {
-    const raw = await this.ctx.call('SaveAsDraft', { bankReceipts: data });
-    return toArray(this.ctx.unwrap<any>(raw, 'SaveAsDraftResult'));
+  async saveAsDraft(data: BankReceiptPayload): Promise<BankReceiptIdentity[]> {
+    const raw = await this.ctx.call('SaveAsDraft', {
+      bankReceipts: { BankReceiptInfo: toArray(data) },
+    });
+    return this.ctx.unwrapArray<BankReceiptIdentity>(raw, 'SaveAsDraftResult');
   }
 
   async sendDraft(ettns: string[]): Promise<boolean> {
-    const raw = await this.ctx.call('SendDraft', { bankReceiptEttns: { string: ettns } });
+    const raw = await this.ctx.call('SendDraft', { documentIds: { string: ettns } });
     return this.ctx.unwrapFlag(raw, 'SendDraftResult');
   }
 
   async cancelDraft(ettns: string[]): Promise<boolean> {
-    const raw = await this.ctx.call('CancelDraft', { bankReceiptEttns: { string: ettns } });
+    const raw = await this.ctx.call('CancelDraft', { documentIds: { string: ettns } });
     return this.ctx.unwrapFlag(raw, 'CancelDraftResult');
   }
 }

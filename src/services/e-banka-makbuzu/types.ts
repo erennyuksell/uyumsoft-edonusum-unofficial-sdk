@@ -1,9 +1,8 @@
 // Uyumsoft SDK — e-Banka Makbuzu (BankReceipt) Types
-import type { LogRecordItem, QuerySortMode } from '../../core/types';
+import type { LogRecordItem, QuerySortMode, UnknownRecord } from '../../core/types';
 
-export interface BankReceiptListItem {
-  [key: string]: any;
-}
+export type BankReceiptListItem = UnknownRecord;
+export type BankReceiptPayload = UnknownRecord | UnknownRecord[];
 export interface BankReceiptStatusInfo {
   Ettn: string;
   Status: string;

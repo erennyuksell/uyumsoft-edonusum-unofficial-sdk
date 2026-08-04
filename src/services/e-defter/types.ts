@@ -1,24 +1,20 @@
-export interface LedgerSource {
-  [key: string]: any;
-}
-export interface LedgerInfo {
-  [key: string]: any;
-}
-export interface LedgerLog {
-  [key: string]: any;
-}
-export interface LedgerSchematronResult {
-  [key: string]: any;
-}
-export interface LedgerReport {
-  [key: string]: any;
-}
-export interface CompanyInfo {
-  [key: string]: any;
-}
-export interface AccountantInfo {
-  [key: string]: any;
-}
-export interface LedgerSourceInfo {
-  [key: string]: any;
-}
+import type { UnknownRecord } from '../../core/types';
+
+export type LedgerSource = UnknownRecord;
+export type LedgerSourceUpload = UnknownRecord;
+export type LedgerSourceUploadResult = UnknownRecord;
+export type LedgerInfo = UnknownRecord;
+export type LedgerData = UnknownRecord;
+export type LedgerLog = UnknownRecord;
+export type LedgerSchematronResult = UnknownRecord;
+export type LedgerReport = UnknownRecord;
+export type LedgerReportData = UnknownRecord;
+export type LedgerSigningSessionData = UnknownRecord;
+export type LedgerCertificatePayload = UnknownRecord;
+export type LedgerCertificateResult = UnknownRecord;
+export type LedgerImportPayload = UnknownRecord;
+export type LedgerImportResult = UnknownRecord;
+export type LedgerSuccessfulPeriods = UnknownRecord;
+export type CompanyInfo = UnknownRecord;
+export type AccountantInfo = UnknownRecord;
+export type LedgerSourceInfo = UnknownRecord;

@@ -1,9 +1,8 @@
 // Uyumsoft SDK — e-Gider Pusulası (ExpenseReceipt) Types
-import type { LogRecordItem, QuerySortMode } from '../../core/types';
+import type { LogRecordItem, QuerySortMode, UnknownRecord } from '../../core/types';
 
-export interface ExpenseReceiptListItem {
-  [key: string]: any;
-}
+export type ExpenseReceiptListItem = UnknownRecord;
+export type ExpenseReceiptPayload = UnknownRecord | UnknownRecord[];
 export interface ExpenseReceiptStatusInfo {
   Ettn: string;
   Status: string;
