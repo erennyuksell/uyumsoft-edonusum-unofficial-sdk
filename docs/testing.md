@@ -79,6 +79,10 @@ Supported fixture environment variables:
 
 Use `UYUMSOFT_MUTATING_SERVICES=efatura` for the built-in generated invoice flow. Use `UYUMSOFT_REQUIRE_ALL_MUTATING_FIXTURES=true` when a manual live workflow should fail if any selected service is skipped. `UYUMSOFT_MUTATING_FLOW=send` sends supported test documents instead of saving drafts; keep that mode manual only.
 
+## GitHub Workflows
+
+`Live Readonly Smoke` runs every Monday and on demand. `Live Mutating Smoke` runs only when started by hand from the Actions tab; starting it is the consent the script asks for, it always uses the draft flow, and its inputs choose the services and whether a skipped service fails the run. Both use the `UYUMSOFT_USERNAME`/`UYUMSOFT_PASSWORD` repository secrets when set and Uyumsoft's public test account otherwise, always against `UYUMSOFT_ENV=test`. Selecting only `ebilet` without a fixture lists and reads existing tickets and writes nothing.
+
 ## Security Notes
 
 Tests and scripts must not print credentials, WS-Security headers, invoice XML, base64 payloads, VKN/TCKN data, or private endpoints. `npm audit --omit=dev` currently reports known transitive advisories through `strong-soap`; see `SECURITY.md` for the allowlist rationale and mitigation notes.

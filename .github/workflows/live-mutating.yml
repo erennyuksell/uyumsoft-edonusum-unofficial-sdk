@@ -1,7 +1,19 @@
 name: Live Mutating Smoke
 
+# Manual only: starting this workflow by hand is the consent the script asks for
+# (UYUMSOFT_RUN_MUTATING_TESTS). It always saves drafts and cancels them; the
+# send flow stays a local-only run (see docs/testing.md).
 on:
   workflow_dispatch:
+    inputs:
+      services:
+        description: 'Comma separated: efatura, esmm, emm, eirsaliye, eadisyon, edoviz, ebankamakbuzu, egiderpusulasi, ebilet, edefter'
+        required: true
+        default: 'efatura,esmm,emm,eirsaliye,eadisyon,edoviz,ebankamakbuzu,egiderpusulasi,ebilet,edefter'
+      require_all:
+        description: 'Fail when a selected service is skipped'
+        type: boolean
+        default: false
 
 jobs:
   live-mutating:
@@ -21,9 +33,12 @@ jobs:
 
       - name: Run guarded mutating smoke against Uyumsoft test
         run: npm run test:live:mutating
+        # Falls back to Uyumsoft's public test account (see README) when no secrets are set.
         env:
-          UYUMSOFT_USERNAME: ${{ secrets.UYUMSOFT_USERNAME }}
-          UYUMSOFT_PASSWORD: ${{ secrets.UYUMSOFT_PASSWORD }}
+          UYUMSOFT_USERNAME: ${{ secrets.UYUMSOFT_USERNAME || 'Uyumsoft' }}
+          UYUMSOFT_PASSWORD: ${{ secrets.UYUMSOFT_PASSWORD || 'Uyumsoft' }}
           UYUMSOFT_ENV: test
-          UYUMSOFT_RUN_MUTATING_TESTS: ${{ secrets.UYUMSOFT_RUN_MUTATING_TESTS }}
-          UYUMSOFT_MUTATING_INVOICE_XML: ${{ secrets.UYUMSOFT_MUTATING_INVOICE_XML }}
+          UYUMSOFT_RUN_MUTATING_TESTS: 'true'
+          UYUMSOFT_MUTATING_FLOW: draft
+          UYUMSOFT_MUTATING_SERVICES: ${{ inputs.services }}
+          UYUMSOFT_REQUIRE_ALL_MUTATING_FIXTURES: ${{ inputs.require_all }}
