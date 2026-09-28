@@ -516,7 +516,7 @@ async function runTicketScenario() {
   });
   if (!fixture) {
     await runExistingDocumentProbe('ebilet', {
-      list: () => client.ebilet.tickets.list(0, 1),
+      list: () => client.ebilet.tickets.list(0, 50),
       get: (id) => client.ebilet.tickets.get(id),
     });
     return;
@@ -594,10 +594,24 @@ async function runExistingDocumentProbe(serviceName, probe) {
   }
 
   if (probe.get) {
+    // A listed document with FileSize 0 has no stored file and the vendor answers
+    // "Dosya okunamadi" when it is read, so read the first one that has content.
+    const readableId = firstExistingDocumentId(page.items.filter(hasStoredFile));
+    if (!readableId) {
+      pushSkipped(
+        `${serviceName}.outbox.get.existing`,
+        'No listed document has a stored file (FileSize 0).',
+      );
+      return;
+    }
     await runStep(`${serviceName}.outbox.get.existing`, async () =>
-      summarizeDocument(await probe.get(documentId)),
+      summarizeDocument(await probe.get(readableId)),
     );
   }
+}
+
+function hasStoredFile(item) {
+  return !(item && typeof item === 'object' && item.FileSize === 0);
 }
 
 async function runStep(name, fn) {
