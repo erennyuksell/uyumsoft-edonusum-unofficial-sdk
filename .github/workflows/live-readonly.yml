@@ -23,7 +23,8 @@ jobs:
 
       - name: Run readonly live smoke against Uyumsoft test
         run: npm run test:live:readonly
+        # Falls back to Uyumsoft's public test account (see README) when no secrets are set.
         env:
-          UYUMSOFT_USERNAME: ${{ secrets.UYUMSOFT_USERNAME }}
-          UYUMSOFT_PASSWORD: ${{ secrets.UYUMSOFT_PASSWORD }}
+          UYUMSOFT_USERNAME: ${{ secrets.UYUMSOFT_USERNAME || 'Uyumsoft' }}
+          UYUMSOFT_PASSWORD: ${{ secrets.UYUMSOFT_PASSWORD || 'Uyumsoft' }}
           UYUMSOFT_ENV: test
