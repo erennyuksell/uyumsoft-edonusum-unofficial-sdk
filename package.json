@@ -66,7 +66,7 @@
     "prepack": "npm run build"
   },
   "dependencies": {
-    "@erennyuksell/ubl-tr": "^0.2.0",
+    "@erennyuksell/ubl-tr": "^0.3.0",
     "strong-soap": "^5.0.10"
   },
   "devDependencies": {
