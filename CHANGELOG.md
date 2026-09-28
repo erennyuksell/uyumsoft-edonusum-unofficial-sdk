@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.3.0
+
+### Breaking
+
+- Requires `@erennyuksell/ubl-tr` `^0.3.0` (was `^0.2.0`). `buildUyumsoftInvoiceInfo` validates
+  through it, so its stricter pre-flight checks now apply here too: document totals must equal
+  the lines exactly, a line's amount and withholding must match exactly (only line VAT keeps the
+  one-kuruş tolerance), withholding lines need a GİB tevkifat code at GİB's rate and a
+  withholding invoice type, return types need the returned invoice's 16-character number
+  (`billingReferenceInvoiceNo`), and `headerAllowanceCharges[].percent` is a percent (5 = 5%, not
+  0.05); the calculator spreads the document discount or charge over the lines. Only the written
+  `MultiplierFactorNumeric` is a fraction (0.05 for 5%). See the ubl-tr 0.3.0 changelog.
+
 ## 0.2.0
 
 ### Breaking
