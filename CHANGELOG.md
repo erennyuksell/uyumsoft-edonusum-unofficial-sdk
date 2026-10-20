@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.4.0
+
+### Breaking
+
+- Requires `@erennyuksell/ubl-tr` `^0.7.0` (was `^0.3.0`). `buildUyumsoftInvoiceInfo` builds and
+  validates through it, so ubl-tr's checks against GİB's current e-Fatura schematron and guides apply
+  here too: codes from GİB's lists, the profile and type pair (an `IADE` is not issued under
+  `TICARIFATURA`), VKN and TCKN check digits, a TCKN party's first and family name, an exemption's
+  reason and type, a zero VAT's exemption, the exchange rate of an invoice not in TRY, and the fields of
+  each special profile (export, tax-free, KAMU, SGK, HKS, ENERJI, İDİS, ILAC_TIBBICIHAZ, investment
+  incentive). Return invoices take `billingReferences` (several returned invoices); the single
+  `billingReferenceInvoiceNo` still works. See the ubl-tr 0.4.0 to 0.7.0 changelogs.
+
 ## 0.3.0
 
 ### Breaking
