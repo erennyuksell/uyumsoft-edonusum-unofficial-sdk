@@ -411,7 +411,7 @@ class ManageMethods {
   /** Retry sending failed invoices. */
   async retrySend(invoiceIds: string[]): Promise<void> {
     const raw = await this.ctx.call('RetrySendInvoices', { invoiceIds: { string: invoiceIds } });
-    this.ctx.unwrapFlag(raw, 'RetrySendInvoicesResult');
+    this.ctx.unwrapSuccess(raw, 'RetrySendInvoicesResult');
   }
 
   /** Import an existing invoice file. Returns the assigned document ID. */

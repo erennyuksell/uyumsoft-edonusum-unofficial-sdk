@@ -50,12 +50,12 @@ class FxOutboxMethods {
 
   async getHtml(documentId: string): Promise<string> {
     const raw = await this.ctx.call('GetHtmlView', { documentId });
-    return this.ctx.unwrapString(raw, 'GetHtmlViewResult');
+    return this.ctx.unwrapField(raw, 'GetHtmlViewResult', 'Html');
   }
 
   async getPdf(documentId: string): Promise<string> {
     const raw = await this.ctx.call('GetPdfView', { documentId });
-    return this.ctx.unwrapString(raw, 'GetPdfViewResult');
+    return this.ctx.unwrapField(raw, 'GetPdfViewResult', 'FileData');
   }
 
   async getStatus(ettns: string[]): Promise<FxStatusInfo[]> {
@@ -86,7 +86,7 @@ class FxOutboxMethods {
     const raw = await this.ctx.call('RetrySendForeignExchanges', {
       documentIds: { string: ettns },
     });
-    return this.ctx.unwrapFlag(raw, 'RetrySendForeignExchangesResult');
+    return this.ctx.unwrapSuccess(raw, 'RetrySendForeignExchangesResult');
   }
 }
 

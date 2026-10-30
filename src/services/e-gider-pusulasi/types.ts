@@ -27,3 +27,6 @@ export interface ExpenseReceiptListQuery {
   PageIndex?: number;
   PageSize?: number;
 }
+
+/** An expense receipt created from e-Archive invoices. */
+export type ExpenseReceipt = UnknownRecord;

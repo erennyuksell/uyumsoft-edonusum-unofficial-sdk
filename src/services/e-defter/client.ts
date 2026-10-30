@@ -98,22 +98,22 @@ class LedgerMethods {
 
   async getCompressedData(ledgerId: string): Promise<string> {
     const raw = await this.ctx.call('GetLedgerCompressedData', { ledgerId });
-    return this.ctx.unwrapString(raw, 'GetLedgerCompressedDataResult');
+    return this.ctx.unwrapField(raw, 'GetLedgerCompressedDataResult', 'Data');
   }
 
-  async getCompressedAllData(ledgerId: string): Promise<string> {
+  async getCompressedAllData(ledgerId: string): Promise<LedgerData[]> {
     const raw = await this.ctx.call('GetLedgerCompressedAllData', { ledgerId });
-    return this.ctx.unwrapString(raw, 'GetLedgerCompressedAllDataResult');
+    return this.ctx.unwrapArray<LedgerData>(raw, 'GetLedgerCompressedAllDataResult');
   }
 
   async getCompressedDataByFileType(ledgerId: string, fileType: string): Promise<string> {
     const raw = await this.ctx.call('GetLedgerCompressedDataByFileType', { ledgerId, fileType });
-    return this.ctx.unwrapString(raw, 'GetLedgerCompressedDataByFileTypeResult');
+    return this.ctx.unwrapField(raw, 'GetLedgerCompressedDataByFileTypeResult', 'Data');
   }
 
-  async cancel(ledgerId: string): Promise<boolean> {
+  async cancel(ledgerId: string): Promise<string> {
     const raw = await this.ctx.call('CancelLedger', { ledgerId });
-    return this.ctx.unwrapFlag(raw, 'CancelLedgerResult');
+    return this.ctx.unwrapString(raw, 'CancelLedgerResult');
   }
 
   async getLogs(ledgerId: string): Promise<LedgerLog[]> {
@@ -126,24 +126,24 @@ class LedgerMethods {
     return this.ctx.unwrapArray<LedgerSchematronResult>(raw, 'GetLedgerSchematronResultsResult');
   }
 
-  async uploadSigned(ledgerId: string, signedData: string): Promise<boolean> {
+  async uploadSigned(ledgerId: string, signedData: string): Promise<LedgerInfo> {
     const raw = await this.ctx.call('UploadSignedLedger', { ledgerId, signedData });
-    return this.ctx.unwrapFlag(raw, 'UploadSignedLedgerResult');
+    return this.ctx.unwrap<LedgerInfo>(raw, 'UploadSignedLedgerResult');
   }
 
   async toPdf(ledgerId: string): Promise<string> {
     const raw = await this.ctx.call('TransformLedgerToPdf', { ledgerId });
-    return this.ctx.unwrapString(raw, 'TransformLedgerToPdfResult');
+    return this.ctx.unwrapField(raw, 'TransformLedgerToPdfResult', 'Data');
   }
 
   async toCompressedPdf(ledgerId: string): Promise<string> {
     const raw = await this.ctx.call('TransformLedgerToCompressedPdf', { ledgerId });
-    return this.ctx.unwrapString(raw, 'TransformLedgerToCompressedPdfResult');
+    return this.ctx.unwrapField(raw, 'TransformLedgerToCompressedPdfResult', 'Data');
   }
 
   async toCompressedHtml(ledgerId: string): Promise<string> {
     const raw = await this.ctx.call('TransformLedgerToCompressedHtml', { ledgerId });
-    return this.ctx.unwrapString(raw, 'TransformLedgerToCompressedHtmlResult');
+    return this.ctx.unwrapField(raw, 'TransformLedgerToCompressedHtmlResult', 'Data');
   }
 
   async getSigningSessionData(ledgerId: string): Promise<LedgerSigningSessionData> {
@@ -151,14 +151,15 @@ class LedgerMethods {
     return this.ctx.unwrap<LedgerSigningSessionData>(raw, 'GetLedgerSigningSessionDataResult');
   }
 
-  async canPrepare(period: string): Promise<boolean> {
+  /** The date Uyumsoft answers for the period; a period that cannot be prepared throws. */
+  async canPrepare(period: string): Promise<Date> {
     const raw = await this.ctx.call('CanPrepareLedger', { period });
-    return this.ctx.unwrapFlag(raw, 'CanPrepareLedgerResult');
+    return this.ctx.unwrapDate(raw, 'CanPrepareLedgerResult');
   }
 
-  async storeCompleted(ledgerId: string): Promise<boolean> {
+  async storeCompleted(ledgerId: string): Promise<LedgerInfo[]> {
     const raw = await this.ctx.call('StoreCompletedLedger', { ledgerId });
-    return this.ctx.unwrapFlag(raw, 'StoreCompletedLedgerResult');
+    return this.ctx.unwrapArray<LedgerInfo>(raw, 'StoreCompletedLedgerResult');
   }
 
   async importLedger(data: LedgerImportPayload): Promise<LedgerImportResult> {
@@ -173,7 +174,7 @@ class LedgerMethods {
 
   async syncWithBookkeeper(): Promise<boolean> {
     const raw = await this.ctx.call('SyncronizeWithBookkeper');
-    return this.ctx.unwrapFlag(raw, 'SyncronizeWithBookkeperResult');
+    return this.ctx.unwrapSuccess(raw, 'SyncronizeWithBookkeperResult');
   }
 
   async createCertificate(data: LedgerCertificatePayload): Promise<LedgerCertificateResult> {
@@ -214,7 +215,7 @@ class LedgerReportMethods {
 
   async getCompressedData(reportId: string): Promise<string> {
     const raw = await this.ctx.call('GetLedgerReportCompressedData', { reportId });
-    return this.ctx.unwrapString(raw, 'GetLedgerReportCompressedDataResult');
+    return this.ctx.unwrapField(raw, 'GetLedgerReportCompressedDataResult', 'Data');
   }
 
   async getCsvData(reportId: string): Promise<string> {
@@ -248,9 +249,9 @@ class CompanyMethods {
     return this.ctx.unwrap<CompanyInfo>(raw, 'GetCompanyInformationResult');
   }
 
-  async saveCompanyInfo(info: CompanyInfo): Promise<boolean> {
+  async saveCompanyInfo(info: CompanyInfo): Promise<CompanyInfo> {
     const raw = await this.ctx.call('SaveCompanyInformation', { info });
-    return this.ctx.unwrapFlag(raw, 'SaveCompanyInformationResult');
+    return this.ctx.unwrap<CompanyInfo>(raw, 'SaveCompanyInformationResult');
   }
 
   async getAccountantInfo(): Promise<AccountantInfo> {
@@ -258,9 +259,9 @@ class CompanyMethods {
     return this.ctx.unwrap<AccountantInfo>(raw, 'GetAccountantInformationResult');
   }
 
-  async saveAccountantInfo(info: AccountantInfo): Promise<boolean> {
+  async saveAccountantInfo(info: AccountantInfo): Promise<AccountantInfo> {
     const raw = await this.ctx.call('SaveAccountantInformation', { info });
-    return this.ctx.unwrapFlag(raw, 'SaveAccountantInformationResult');
+    return this.ctx.unwrap<AccountantInfo>(raw, 'SaveAccountantInformationResult');
   }
 
   async deleteAccountantInfo(): Promise<boolean> {

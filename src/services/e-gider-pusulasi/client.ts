@@ -6,6 +6,7 @@ import type {
   ExpenseReceiptListItem,
   ExpenseReceiptStatusInfo,
   ExpenseReceiptStatusWithLogInfo,
+  ExpenseReceipt,
   ExpenseReceiptData,
   ExpenseReceiptIdentity,
   ExpenseReceiptPayload,
@@ -50,12 +51,12 @@ class ExpenseOutboxMethods {
 
   async getHtml(documentId: string): Promise<string> {
     const raw = await this.ctx.call('GetHtmlView', { documentId });
-    return this.ctx.unwrapString(raw, 'GetHtmlViewResult');
+    return this.ctx.unwrapField(raw, 'GetHtmlViewResult', 'Html');
   }
 
   async getPdf(documentId: string): Promise<string> {
     const raw = await this.ctx.call('GetPdfView', { documentId });
-    return this.ctx.unwrapString(raw, 'GetPdfViewResult');
+    return this.ctx.unwrapField(raw, 'GetPdfViewResult', 'FileData');
   }
 
   async getStatus(ettns: string[]): Promise<ExpenseReceiptStatusInfo[]> {
@@ -76,11 +77,14 @@ class ExpenseOutboxMethods {
   }
 
   /** Create expense receipts from existing e-Archive invoices. */
-  async fromEArchiveInvoices(invoiceIds: string[]): Promise<boolean> {
+  async fromEArchiveInvoices(invoiceIds: string[]): Promise<ExpenseReceipt[]> {
     const raw = await this.ctx.call('QueueExpenseReceiptFromEArchiveInvoices', {
       invoiceIds: { string: invoiceIds },
     });
-    return this.ctx.unwrapFlag(raw, 'QueueExpenseReceiptFromEArchiveInvoicesResult');
+    return this.ctx.unwrapArray<ExpenseReceipt>(
+      raw,
+      'QueueExpenseReceiptFromEArchiveInvoicesResult',
+    );
   }
 }
 

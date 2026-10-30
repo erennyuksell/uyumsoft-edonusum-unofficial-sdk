@@ -26,7 +26,7 @@ const ledgers = await client.edefter.ledgers.list({ Year: 2025, Month: 1 });
 
 - 🔌 **10 servis, tek client** — e-Fatura, e-İrsaliye, e-SMM, e-MM, e-Defter, e-Bilet, e-Adisyon, e-Döviz, e-Banka Makbuzu, e-Gider Pusulası
 - 🔄 **Lazy SOAP init** — her servis ilk çağrıda bağlanır, kullanılmayan servis bağlantı açmaz
-- 🛡️ **Retry + Exponential Backoff** — ağ hatalarında otomatik yeniden deneme
+- 🛡️ **Retry + Exponential Backoff** — okuyan çağrılarda otomatik yeniden deneme, yazan çağrılarda yalnız bağlantı hiç kurulamadıysa
 - 📦 **Uyumsoft uyumlu SOAP serialization** — SOAP için `strong-soap`, UBL-TR envelope için `@erennyuksell/ubl-tr`
 - 🧩 **Tam TypeScript** — tüm request/response tipleri dahil
 - 📖 **Domain-grouped API** — `inbox`, `outbox`, `send`, `manage`, `users`, `system`
@@ -56,6 +56,9 @@ const client = new Uyumsoft({
     backoffMultiplier: 2,
     retryOnTimeout: true,
     retryOnConnectionError: true,
+    // Durum değiştiren çağrılar (gönderim, iptal, yanıt) istek gitmiş olabileceği için varsayılan
+    // olarak yeniden denenmez. Bağlantı hiç kurulamadıysa yine denenir.
+    retryMutations: false,
   },
 
   // Logger (pino, winston, console — hepsi uyumlu)
@@ -326,14 +329,31 @@ const fromArchive = await client.egiderpusulasi.outbox.fromEArchiveInvoices(['in
 
 Fatura/belge durum sorgulamalarında dönen status kodları:
 
-| Kod  | Enum                    | Açıklama            |
-| ---- | ----------------------- | ------------------- |
-| 1000 | `Approved`              | Onaylandı           |
-| 1100 | `WaitingForApprovement` | Onay Bekliyor       |
-| 1200 | `Declined`              | Reddedildi          |
-| 1300 | `Return`                | İade Edildi         |
-| 1400 | `eArchiveCanceled`      | e-Arşiv İptal       |
-| 2000 | `Error`                 | GİB iletişim hatası |
+| Kod  | Enum                   | Açıklama            |
+| ---- | ---------------------- | ------------------- |
+| 0    | `Draft`                | Taslak              |
+| 10   | `Canceled`             | İptal edildi        |
+| 300  | `SentToGib`            | GİB'e gönderildi    |
+| 1000 | `Approved`             | Onaylandı           |
+| 1100 | `WaitingForAprovement` | Onay Bekliyor       |
+| 1200 | `Declined`             | Reddedildi          |
+| 1300 | `Return`               | İade Edildi         |
+| 1400 | `EArchivedCanceled`    | e-Arşiv İptal       |
+| 2000 | `Error`                | GİB iletişim hatası |
+
+Enum adlarının yazımı Uyumsoft'un WSDL'indekidir. Bu kodlar fatura durumudur, GİB zarf kodu değildir:
+zarf kodu `EnvelopeStatusCode` alanındadır ve yalnız `getStatusWithLogs` döndürür (`1300` burada GİB'in
+"başarıyla tamamlandı"sıdır). `SentToGib` + zarf `1300` birlikte gelebilir. `getStatusWithLogs`, sorulan
+kimliklerin hiçbiri bulunamazsa hata fırlatır; `getStatus` boş liste döner.
+
+## Kimlikler ve Tarihler
+
+Liste satırlarında (`inbox.list`, `outbox.list`) `InvoiceId` belge numarasıdır (`TST2026205189828`),
+`DocumentId` ETTN'dir. `get`, `getData`, `getStatus`, `sendResponse` gibi metotların `invoiceId`
+parametresi ETTN ister; numarayla "fatura bulunamadı" ya da boş liste döner.
+
+`ExecutionStartDate` belgenin tarihini, `CreateStartDate` belgenin Uyumsoft'a ulaştığı zamanı süzer.
+Gelen kutusunu periyodik çekerken `CreateStartDate` kullanın: geç ulaşan faturanın tarihi eski olur.
 
 ## Fatura Seri Numarası Formatı
 
@@ -376,11 +396,11 @@ try {
   await client.efatura.inbox.list();
 } catch (err) {
   if (err instanceof UyumsoftAuthError) {
-    // Kullanıcı adı/şifre hatalı veya IP whitelist
+    // Kullanıcı adı/şifre hatalı, yetki yok veya IP whitelist
   } else if (err instanceof UyumsoftTimeoutError) {
     // İstek zaman aşımı
   } else if (err instanceof UyumsoftConnectionError) {
-    // Ağ bağlantı hatası (ECONNRESET, ENOTFOUND)
+    // Ağ bağlantı hatası. err.neverSent true ise istek hiç gitmedi, güvenle yeniden denenir
   } else if (err instanceof UyumsoftError) {
     // Genel SDK hatası
     console.error(err.code, err.message);

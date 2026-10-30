@@ -30,6 +30,12 @@ export interface RetryConfig {
   retryOnTimeout?: boolean;
   /** Whether to retry on connection errors (default: true) */
   retryOnConnectionError?: boolean;
+  /**
+   * Whether a call that changes state (sending, cancelling, responding) is retried after a timeout
+   * or a dropped connection (default: false). The request may already have reached Uyumsoft, so a
+   * retry can send the same document twice. A connection that was never made is always retried.
+   */
+  retryMutations?: boolean;
 }
 
 /** Logger interface — plug in any logger (pino, winston, console) */
@@ -167,5 +173,6 @@ export const SystemDocumentType = {
   Reconciliation: 'Reconciliation',
   OkcReport: 'OkcReport',
   ExpenseReceipt: 'ExpenseReceipt',
+  InboxVoucher: 'InboxVoucher',
 } as const;
 export type SystemDocumentType = (typeof SystemDocumentType)[keyof typeof SystemDocumentType];

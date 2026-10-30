@@ -297,3 +297,9 @@ export interface DespatchUserAliases {
   ReceiverboxAliases: UnknownRecord[];
   SenderboxAliases: UnknownRecord[];
 }
+
+/** A sent receipt advice, as `receipt.sendUbl` returns it. */
+export interface ReceiptAdviceIdentity {
+  ReceiptAdviceNumber?: string;
+  DocumentId?: string;
+}

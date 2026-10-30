@@ -38,11 +38,12 @@ export function normalizeResponse<T>(value: unknown): T {
   }
 
   // If object has $value (text content) + possibly $attributes
-  if ('$value' in soapObject) {
-    // Simple scalar with attributes — return just the value for most cases
-    if (keys.length <= 2 && '$attributes' in soapObject) {
-      return soapObject.$value as T;
-    }
+  // Simple scalar, with or without attributes: return just the value. An element that also has
+  // child elements keeps them, its text stays under `$value`.
+  if (
+    '$value' in soapObject &&
+    (keys.length === 1 || (keys.length === 2 && '$attributes' in soapObject))
+  ) {
     return soapObject.$value as T;
   }
 
@@ -54,7 +55,7 @@ export function normalizeResponse<T>(value: unknown): T {
       for (const [ak, av] of Object.entries(v)) {
         result[ak] = normalizeResponse(av);
       }
-    } else if (k !== '$value') {
+    } else {
       result[k] = normalizeResponse(v);
     }
   }

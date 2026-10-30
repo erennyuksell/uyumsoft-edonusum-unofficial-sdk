@@ -1,5 +1,46 @@
 # Changelog
 
+## 0.5.0
+
+### Breaking
+
+- A call that changes state (sending, cancelling, responding, retrying) is no longer retried after a
+  timeout or a dropped connection: the request may have arrived, and a second one can send the same
+  document twice. `retry.retryMutations: true` restores the old behaviour. A connection that was never
+  made is still retried; such errors carry `UyumsoftConnectionError.neverSent`.
+- A wrong user or password now raises `UyumsoftAuthError`. Uyumsoft answers with the SOAP fault
+  "Bu sisteme erişmek için gerekli yetkiniz yok", which used to surface as `SOAP_CALL_ERROR`. The check
+  no longer matches any message that merely contains "Authentication".
+- Methods that returned `boolean` but whose result is a value now return it: e-Defter `ledgers.cancel`
+  (`string`), `uploadSigned` (`LedgerInfo`), `canPrepare` (`Date`), `storeCompleted` (`LedgerInfo[]`),
+  `saveCompanyInfo`, `saveAccountantInfo`, e-Gider Pusulası `fromEArchiveInvoices` (`ExpenseReceipt[]`). They
+  always returned `false`.
+- e-Defter `getCompressedAllData` returns `LedgerData[]`, one entry per file (it returned the text
+  `[object Object]`).
+
+### Fixed
+
+- A server that goes silent is disconnected instead of holding the socket after the call has timed out,
+  and the time limit covers loading the WSDL, which could hang forever. Calls that arrive during the load
+  share it.
+- Errors no longer carry strong-soap's HTTP response in `cause`: it led to the request body with the
+  WS-Security password. `code`, `root`, `body` and `statusCode` stay.
+- e-Defter `syncWithBookkeeper` and e-Döviz `retrySend` always returned `false`: their result carries only
+  success. They return `true`, and throw on failure.
+- Fifteen methods returned the text `[object Object]`: e-Müstahsil `getHtmlView`, the `getHtml` and `getPdf`
+  of e-Adisyon, e-Döviz, e-Banka Makbuzu and e-Gider Pusulası, and e-Defter `getCompressedData`,
+  `getCompressedDataByFileType`, `toPdf`, `toCompressedPdf`, `toCompressedHtml` and the report
+  `getCompressedData`. They return the HTML, or the file as base64.
+- e-İrsaliye `receipt.sendUbl` returned an empty list; its result lists `ReceiptAdviceIdentity`.
+- `normalizeResponse` dropped the child elements of an element that also had text.
+
+### Added
+
+- Enum values from the current WSDLs: `InboxVoucher`, `EAssetsLedger`, `ExpenseReceipt`, `EmlakKivi507`,
+  `DocumentUsage`, `PaGeneralExpense`, `PaQuote`.
+- The README documents the real status codes, that `InvoiceId` in a list row is the invoice number and
+  `DocumentId` the ETTN, and which date filter to use for polling the inbox.
+
 ## 0.4.0
 
 ### Breaking

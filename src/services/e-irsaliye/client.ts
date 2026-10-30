@@ -8,6 +8,7 @@ import {
 } from '../../core/types';
 import { SharedSystemMethods, buildPaginationAttrs } from '../../core/helpers';
 import type {
+  ReceiptAdviceIdentity,
   DespatchListQuery,
   DespatchQuery,
   DespatchListItem,
@@ -295,9 +296,13 @@ class ReceiptAdviceMethods {
   }
 
   /** Send receipt advices as UBL-TR XML. */
-  async sendUbl(receiptAdvices: DespatchInfo[]): Promise<DespatchStatusInfo[]> {
+  async sendUbl(receiptAdvices: DespatchInfo[]): Promise<ReceiptAdviceIdentity[]> {
     const raw = await this.ctx.call('SendReceiptAdviceUbl', { receiptAdvices });
-    return this.ctx.unwrapArray<DespatchStatusInfo>(raw, 'SendReceiptAdviceUblResult');
+    return this.ctx.unwrapElements<ReceiptAdviceIdentity>(
+      raw,
+      'SendReceiptAdviceUblResult',
+      'ReceiptAdviceIdentity',
+    );
   }
 
   /** Save receipt advices as draft. */

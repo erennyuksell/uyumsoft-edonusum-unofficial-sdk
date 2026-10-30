@@ -27,9 +27,13 @@ export class UyumsoftAuthError extends UyumsoftError {
 
 /** Connection failure — WSDL unreachable, network down, DNS failure. */
 export class UyumsoftConnectionError extends UyumsoftError {
-  constructor(message = 'Connection failed', cause?: unknown) {
+  /** True when no request left this process (WSDL not loaded, connection refused, DNS failure). */
+  readonly neverSent: boolean;
+
+  constructor(message = 'Connection failed', cause?: unknown, neverSent = false) {
     super(message, 'CONNECTION_ERROR', cause);
     this.name = 'UyumsoftConnectionError';
+    this.neverSent = neverSent;
   }
 }
 

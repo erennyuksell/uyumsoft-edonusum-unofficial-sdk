@@ -186,6 +186,8 @@ export const CustomerServiceType = {
   LucaIntegration: 'LucaIntegration',
   InsuranceCommission: 'InsuranceCommission',
   DocumentAccess: 'DocumentAccess',
+  EAssetsLedger: 'EAssetsLedger',
+  ExpenseReceipt: 'ExpenseReceipt',
 } as const;
 export type CustomerServiceType = (typeof CustomerServiceType)[keyof typeof CustomerServiceType];
 
@@ -338,6 +340,7 @@ export const CustomerSourceType = {
   KiviPavo507: 'KiviPavo507',
   Odeal507: 'Odeal507',
   Pavo507: 'Pavo507',
+  EmlakKivi507: 'EmlakKivi507',
 } as const;
 export type CustomerSourceType = (typeof CustomerSourceType)[keyof typeof CustomerSourceType];
 
@@ -391,6 +394,9 @@ export const XsltViewType = {
   GibArchiveInvoice: 'GibArchiveInvoice',
   PaWarehouseList: 'PaWarehouseList',
   GuestCheckReport: 'GuestCheckReport',
+  DocumentUsage: 'DocumentUsage',
+  PaGeneralExpense: 'PaGeneralExpense',
+  PaQuote: 'PaQuote',
 } as const;
 export type XsltViewType = (typeof XsltViewType)[keyof typeof XsltViewType];
 
@@ -443,7 +449,12 @@ export interface InboxInvoiceQuery extends InvoiceQuery {
 
 /** Base invoice list item (shared between inbox/outbox) */
 export interface InvoiceListItemBase {
+  /**
+   * The invoice NUMBER (`TST2026205189828`), despite the name. Pass `DocumentId` to `get`,
+   * `getData`, `getStatus` and `sendResponse`: their `invoiceId` is the ETTN.
+   */
   InvoiceId: string;
+  /** The ETTN (invoice UUID). */
   DocumentId: string;
   Type: InvoiceTypes;
   TypeCode: number;

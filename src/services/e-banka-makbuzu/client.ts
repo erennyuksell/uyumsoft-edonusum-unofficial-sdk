@@ -50,12 +50,12 @@ class BankReceiptOutboxMethods {
 
   async getHtml(documentId: string): Promise<string> {
     const raw = await this.ctx.call('GetHtmlView', { documentId });
-    return this.ctx.unwrapString(raw, 'GetHtmlViewResult');
+    return this.ctx.unwrapField(raw, 'GetHtmlViewResult', 'Html');
   }
 
   async getPdf(documentId: string): Promise<string> {
     const raw = await this.ctx.call('GetPdfView', { documentId });
-    return this.ctx.unwrapString(raw, 'GetPdfViewResult');
+    return this.ctx.unwrapField(raw, 'GetPdfViewResult', 'FileData');
   }
 
   async getStatus(ettns: string[]): Promise<BankReceiptStatusInfo[]> {

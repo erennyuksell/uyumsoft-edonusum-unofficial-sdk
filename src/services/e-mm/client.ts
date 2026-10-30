@@ -75,7 +75,7 @@ class MmOutboxMethods {
 
   async getHtmlView(producerReceiptId: string): Promise<string> {
     const raw = await this.ctx.call('GetHtmlView', { receiptId: producerReceiptId });
-    return this.ctx.unwrapString(raw, 'GetHtmlViewResult');
+    return this.ctx.unwrapField(raw, 'GetHtmlViewResult', 'Html');
   }
 
   async getPdf(producerReceiptId: string): Promise<ProducerReceiptData> {
